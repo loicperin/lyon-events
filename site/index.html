@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>Lyon Events · matchs, concerts et spectacles</title>
+  <meta name="description" content="Tous les matchs de foot, de rugby, les concerts et spectacles à Lyon, avec les liens directs vers les billetteries officielles. Mis à jour chaque jour.">
+  <meta name="theme-color" content="#0f1222">
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23ff4d5e'/><text x='32' y='44' font-size='34' text-anchor='middle' font-family='Arial' font-weight='700' fill='white'>L</text></svg>">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <header class="hero">
+    <div class="wrap">
+      <div class="brand">
+        <span class="logo">L</span>
+        <div>
+          <h1>Lyon Events</h1>
+          <p class="tagline">Matchs, concerts et spectacles à Lyon, avec les billetteries officielles</p>
+        </div>
+      </div>
+      <p class="updated" id="updated">Chargement…</p>
+    </div>
+  </header>
+
+  <div class="toolbar" id="toolbar">
+    <div class="wrap">
+      <div class="search-row">
+        <label class="search">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.5 3a7.5 7.5 0 0 1 5.96 12.05l4.25 4.24-1.42 1.42-4.24-4.25A7.5 7.5 0 1 1 10.5 3Zm0 2a5.5 5.5 0 1 0 0 11 5.5 5.5 0 0 0 0-11Z"/></svg>
+          <input id="q" type="search" placeholder="Artiste, équipe, salle…" autocomplete="off">
+        </label>
+        <div class="tabs" role="tablist">
+          <button role="tab" class="tab active" data-view="agenda" aria-selected="true">Agenda</button>
+          <button role="tab" class="tab" data-view="venues" aria-selected="false">Lieux</button>
+        </div>
+      </div>
+      <div class="chips" id="cats" aria-label="Catégories"></div>
+      <div class="filters-row">
+        <div class="chips small" id="dates" aria-label="Période"></div>
+        <div class="selects">
+          <select id="venue" aria-label="Lieu"><option value="">Tous les lieux</option></select>
+          <label class="toggle"><input type="checkbox" id="onlyNew"> <span>Nouveautés</span></label>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <main class="wrap">
+    <p class="result-count" id="count"></p>
+    <section id="agenda"></section>
+    <section id="venues" hidden></section>
+  </main>
+
+  <footer class="wrap footer">
+    <div>
+      <h3>Billetteries officielles</h3>
+      <ul class="links">
+        <li><a href="https://www.ticketmaster.fr" target="_blank" rel="noopener">Ticketmaster</a></li>
+        <li><a href="https://www.fnacspectacles.com" target="_blank" rel="noopener">Fnac Spectacles</a></li>
+        <li><a href="https://www.seetickets.com/fr" target="_blank" rel="noopener">See Tickets</a></li>
+        <li><a href="https://billetterie.ol.fr" target="_blank" rel="noopener">Billetterie OL</a></li>
+        <li><a href="https://www.lourugby.fr" target="_blank" rel="noopener">LOU Rugby</a></li>
+        <li><a href="https://www.ldlcasvel.com" target="_blank" rel="noopener">LDLC ASVEL</a></li>
+      </ul>
+    </div>
+    <div>
+      <h3>Sources de la dernière mise à jour</h3>
+      <ul class="sources" id="sources"></ul>
+    </div>
+    <p class="fine">Les horaires et prix viennent des billetteries et peuvent changer. Vérifie toujours sur la page de vente avant d'acheter.</p>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,4 @@
+{
+  "_aide": "Ajoute ici des événements que les sources automatiques ne trouvent pas. Format de start : AAAA-MM-JJTHH:MM (heure de Paris). category : concert, football, rugby, basket, spectacle, sport, autre. venueId : un id de config/sources.json (facultatif).",
+  "events": []
+}

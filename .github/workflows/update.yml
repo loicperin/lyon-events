@@ -1,0 +1,57 @@
+name: Mise à jour quotidienne des événements
+
+on:
+  schedule:
+    - cron: "30 4 * * *"   # tous les jours vers 5h30-6h30 (heure de Paris)
+  workflow_dispatch:         # bouton « Run workflow » pour lancer à la main
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Récupérer les événements
+        env:
+          TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
+          FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
+          OPENAGENDA_API_KEY: ${{ secrets.OPENAGENDA_API_KEY }}
+        run: python scripts/fetch_events.py
+
+      - name: Enregistrer les données dans le dépôt
+        run: |
+          git config user.name "lyon-events-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add site/events.json
+          git diff --cached --quiet || git commit -m "Mise à jour des événements $(date -u +%F)"
+          git push
+
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: update
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

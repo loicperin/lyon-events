@@ -1,0 +1,214 @@
+{
+ "generatedAt": null,
+ "sources": {},
+ "venues": [
+  {
+   "id": "groupama-stadium",
+   "name": "Groupama Stadium",
+   "aliases": [
+    "groupama stadium",
+    "parc olympique lyonnais",
+    "stade des lumières",
+    "ol stadium"
+   ],
+   "city": "Décines-Charpieu",
+   "address": "10 Avenue Simone Veil, 69150 Décines-Charpieu",
+   "lat": 45.7653,
+   "lng": 4.9822,
+   "type": "Stade",
+   "website": "https://www.groupamastadium.com",
+   "ticketing": "https://billetterie.ol.fr"
+  },
+  {
+   "id": "ldlc-arena",
+   "name": "LDLC Arena",
+   "aliases": [
+    "ldlc arena",
+    "ldlc-arena"
+   ],
+   "city": "Décines-Charpieu",
+   "address": "Avenue Simone Veil, 69150 Décines-Charpieu",
+   "lat": 45.7631,
+   "lng": 4.9795,
+   "type": "Arena",
+   "website": "https://www.ldlc-arena.com"
+  },
+  {
+   "id": "halle-tony-garnier",
+   "name": "Halle Tony Garnier",
+   "aliases": [
+    "halle tony garnier",
+    "tony garnier"
+   ],
+   "city": "Lyon 7e",
+   "address": "20 Place Docteurs Charles et Christophe Mérieux, 69007 Lyon",
+   "lat": 45.733,
+   "lng": 4.8226,
+   "type": "Salle de concert",
+   "website": "https://www.halle-tony-garnier.com"
+  },
+  {
+   "id": "matmut-stadium-gerland",
+   "name": "Matmut Stadium de Gerland",
+   "aliases": [
+    "matmut stadium",
+    "gerland",
+    "stade de gerland",
+    "matmut stadium de gerland",
+    "matmut stadium gerland"
+   ],
+   "city": "Lyon 7e",
+   "address": "353 Avenue Jean Jaurès, 69007 Lyon",
+   "lat": 45.7238,
+   "lng": 4.8323,
+   "type": "Stade",
+   "website": "https://www.lourugby.fr"
+  },
+  {
+   "id": "transbordeur",
+   "name": "Le Transbordeur",
+   "aliases": [
+    "transbordeur",
+    "le transbordeur"
+   ],
+   "city": "Villeurbanne",
+   "address": "3 Boulevard de Stalingrad, 69100 Villeurbanne",
+   "lat": 45.783,
+   "lng": 4.8606,
+   "type": "Salle de concert",
+   "website": "https://www.transbordeur.fr"
+  },
+  {
+   "id": "radiant-bellevue",
+   "name": "Radiant-Bellevue",
+   "aliases": [
+    "radiant",
+    "radiant-bellevue",
+    "radiant bellevue"
+   ],
+   "city": "Caluire-et-Cuire",
+   "address": "1 Rue Jean Moulin, 69300 Caluire-et-Cuire",
+   "lat": 45.793,
+   "lng": 4.844,
+   "type": "Salle de spectacle",
+   "website": "https://www.radiant-bellevue.fr"
+  },
+  {
+   "id": "ninkasi-gerland",
+   "name": "Ninkasi Gerland (Kafé)",
+   "aliases": [
+    "ninkasi",
+    "ninkasi gerland",
+    "ninkasi kafé",
+    "ninkasi kao"
+   ],
+   "city": "Lyon 7e",
+   "address": "267 Rue Marcel Mérieux, 69007 Lyon",
+   "lat": 45.7316,
+   "lng": 4.828,
+   "type": "Salle de concert",
+   "website": "https://www.ninkasi.fr"
+  },
+  {
+   "id": "le-sucre",
+   "name": "Le Sucre",
+   "aliases": [
+    "le sucre"
+   ],
+   "city": "Lyon 2e",
+   "address": "50 Quai Rambaud, 69002 Lyon",
+   "lat": 45.7387,
+   "lng": 4.8158,
+   "type": "Club / rooftop",
+   "website": "https://le-sucre.eu"
+  },
+  {
+   "id": "theatre-antique-fourviere",
+   "name": "Théâtres romains de Fourvière",
+   "aliases": [
+    "fourvière",
+    "fourviere",
+    "théâtre antique",
+    "theatre antique",
+    "nuits de fourvière",
+    "théâtres romains"
+   ],
+   "city": "Lyon 5e",
+   "address": "6 Rue de l'Antiquaille, 69005 Lyon",
+   "lat": 45.7597,
+   "lng": 4.8195,
+   "type": "Théâtre en plein air",
+   "website": "https://www.nuitsdefourviere.com"
+  },
+  {
+   "id": "bourse-du-travail",
+   "name": "Bourse du Travail",
+   "aliases": [
+    "bourse du travail"
+   ],
+   "city": "Lyon 3e",
+   "address": "205 Place Guichard, 69003 Lyon",
+   "lat": 45.7591,
+   "lng": 4.8458,
+   "type": "Salle de spectacle"
+  },
+  {
+   "id": "astroballe",
+   "name": "Astroballe",
+   "aliases": [
+    "astroballe"
+   ],
+   "city": "Villeurbanne",
+   "address": "Avenue Marcel Cerdan, 69100 Villeurbanne",
+   "lat": 45.766,
+   "lng": 4.892,
+   "type": "Salle de sport",
+   "website": "https://www.ldlcasvel.com"
+  },
+  {
+   "id": "marche-gare",
+   "name": "Marché Gare",
+   "aliases": [
+    "marché gare",
+    "marche gare"
+   ],
+   "city": "Lyon 2e",
+   "address": "34 Rue Casimir Périer, 69002 Lyon",
+   "lat": 45.742,
+   "lng": 4.818,
+   "type": "Salle de concert",
+   "website": "https://www.marchegare.fr"
+  },
+  {
+   "id": "auditorium-lyon",
+   "name": "Auditorium de Lyon",
+   "aliases": [
+    "auditorium de lyon",
+    "auditorium maurice ravel",
+    "auditorium-orchestre national de lyon"
+   ],
+   "city": "Lyon 3e",
+   "address": "149 Rue Garibaldi, 69003 Lyon",
+   "lat": 45.761,
+   "lng": 4.851,
+   "type": "Salle de concert",
+   "website": "https://www.auditorium-lyon.com"
+  },
+  {
+   "id": "opera-lyon",
+   "name": "Opéra de Lyon",
+   "aliases": [
+    "opéra de lyon",
+    "opera de lyon",
+    "opéra national de lyon"
+   ],
+   "city": "Lyon 1er",
+   "address": "1 Place de la Comédie, 69001 Lyon",
+   "lat": 45.7676,
+   "lng": 4.836,
+   "type": "Opéra",
+   "website": "https://www.opera-lyon.com"
+  }
+ ],
+ "events": []
+}
