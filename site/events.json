@@ -1,6 +1,34 @@
 {
- "generatedAt": null,
- "sources": {},
+ "generatedAt": "2026-11-08T18:56:45+01:00",
+ "sources": {
+  "Ticketmaster": {
+   "ok": false,
+   "count": 0,
+   "error": "TICKETMASTER_API_KEY absente"
+  },
+  "football-data.org": {
+   "ok": false,
+   "count": 0,
+   "error": "FOOTBALL_DATA_API_KEY absente"
+  },
+  "TheSportsDB": {
+   "ok": true,
+   "count": 1
+  },
+  "OpenAgenda": {
+   "ok": false,
+   "count": 0,
+   "error": "OPENAGENDA_API_KEY ou liste d'agendas absente"
+  },
+  "Sites des salles (JSON-LD)": {
+   "ok": true,
+   "count": 0
+  },
+  "Ajouts manuels": {
+   "ok": true,
+   "count": 0
+  }
+ },
  "venues": [
   {
    "id": "groupama-stadium",
@@ -210,5 +238,33 @@
    "website": "https://www.opera-lyon.com"
   }
  ],
- "events": []
+ "events": [
+  {
+   "title": "Lyon OU – Stade Toulousain",
+   "category": "rugby",
+   "genre": "",
+   "competition": "French Top 14",
+   "start": "2026-11-28T21:00:00+01:00",
+   "end": null,
+   "date": "2026-11-28",
+   "time": "21:00",
+   "venueId": "matmut-stadium-gerland",
+   "venue": "Matmut Stadium de Gerland",
+   "city": "Lyon 7e",
+   "address": "353 Avenue Jean Jaurès, 69007 Lyon",
+   "lat": 45.7238,
+   "lng": 4.8323,
+   "ticketUrl": "https://www.lourugby.fr",
+   "vendor": "Billetterie LOU",
+   "image": "https://r2.thesportsdb.com/images/media/event/thumb/ohp8rw1662124855.jpg",
+   "priceMin": null,
+   "priceMax": null,
+   "currency": "EUR",
+   "status": "",
+   "description": "",
+   "source": "TheSportsDB",
+   "id": "f6f66f9bcbee",
+   "firstSeen": ""
+  }
+ ]
 }
