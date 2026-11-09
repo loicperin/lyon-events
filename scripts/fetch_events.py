@@ -652,6 +652,202 @@ def fetch_openagenda_public():
     return events
 
 
+# ------------------------------------------------------------------- Instagram
+# Lecture des posts publics de comptes qui annoncent des événements (config « instagramAccounts »),
+# via l'API officielle Instagram Graph « Business Discovery » : il faut un compte Instagram
+# professionnel relié à une app Meta, et deux secrets IG_ACCESS_TOKEN / IG_USER_ID.
+# Les posts déjà lus sont gardés dans data/instagram.json : un post de la semaine dernière qui
+# annonce un concert dans un mois reste affiché même s'il ne fait plus partie des derniers posts.
+IG_CACHE = ROOT / "data" / "instagram.json"
+GRAPH = "https://graph.facebook.com/v21.0"
+MONTHS = {"janvier": 1, "janv": 1, "fevrier": 2, "fevr": 2, "fev": 2, "mars": 3, "avril": 4, "avr": 4, "mai": 5,
+          "juin": 6, "juillet": 7, "juil": 7, "aout": 8, "septembre": 9, "sept": 9, "sep": 9, "octobre": 10,
+          "oct": 10, "novembre": 11, "nov": 11, "decembre": 12, "dec": 12}
+_MONTH_RX = "|".join(sorted(MONTHS, key=len, reverse=True))
+RX_DATE_TXT = re.compile(r"\b(\d{1,2})(?:er)?\s+(" + _MONTH_RX + r")\.?(?:\s+(20\d\d))?\b")
+RX_DATE_NUM = re.compile(r"\b(\d{1,2})[/.](\d{1,2})(?:[/.](20\d\d|\d\d))?\b")
+RX_TIME = re.compile(r"\b([01]?\d|2[0-3])\s?h\s?([0-5]\d)?\b")
+RX_PIN = re.compile(r"(?:📍|📌|🏠|lieu\s*:)\s*([^\n#]+)", re.I)
+
+
+def _date_from(day: int, month: int, year: int | None, posted: dt.datetime) -> dt.date | None:
+    """Sans année, on prend la première date à venir après la publication du post."""
+    try:
+        if year:
+            return dt.date(year if year > 100 else 2000 + year, month, day)
+        d = dt.date(posted.year, month, day)
+        return d if d >= posted.date() - dt.timedelta(days=1) else dt.date(posted.year + 1, month, day)
+    except ValueError:
+        return None
+
+
+def parse_caption(caption: str, posted: dt.datetime) -> list[dict]:
+    """Découpe une légende en annonces : chaque bloc qui contient une date devient un événement.
+
+    Un post « Les sorties du week-end » qui liste cinq concerts donne donc cinq événements.
+    """
+    text = caption or ""
+    blocks = [b for b in re.split(r"\n\s*\n|\n(?=\s*(?:[-•▪️➡️👉🔸🔹⭐✨🎤🎶🎭🎨🎬⚽🏉🏀]|\d+[.)]\s))", text) if b.strip()]
+    if len(blocks) <= 1:
+        blocks = [text]
+    found = []
+    header = ""  # bloc sans date qui précède (« 🔥 ORELSAN débarque à Lyon ! ») : sert de titre au bloc daté suivant
+    for b in blocks:
+        n = norm(b)
+        dates = [(int(m.group(1)), MONTHS[m.group(2)], int(m.group(3)) if m.group(3) else None) for m in RX_DATE_TXT.finditer(n)]
+        if not dates:
+            dates = [(int(m.group(1)), int(m.group(2)), int(m.group(3)) if m.group(3) else None)
+                     for m in RX_DATE_NUM.finditer(b) if 1 <= int(m.group(2)) <= 12]
+        title_lines = [_clean_line(l) for l in b.splitlines() if not _is_info_line(l)]
+        title_lines = [l for l in title_lines if len(l) > 2]
+        if not dates:
+            header = title_lines[0] if title_lines else header
+            continue
+        day = _date_from(*dates[0], posted)
+        if not day:
+            continue
+        tm = RX_TIME.search(n)
+        pin = RX_PIN.search(b)
+        title = title_lines[0] if title_lines else header
+        venue = pin.group(1).strip(" -–—:.,") if pin else ""
+        if not venue:  # lieu connu cité dans le texte : « … au Transbordeur »
+            for v in CONFIG["venues"]:
+                if any(f" {norm(a)} " in f" {n} " for a in [v["name"], *v.get("aliases", [])]):
+                    venue = v["name"]
+                    break
+        if not venue:  # « au Musée des Confluences », « à la Sucrière », « chez Mama Shelter »
+            m = RX_AT.search(b)
+            venue = m.group(1).strip() if m else ""
+        if title and venue and norm(title).endswith(norm(venue)):  # « Expo X au Musée Y » -> « Expo X »
+            title = re.sub(r"\s+(?:au|à la|à l['’]|aux|chez)\s+" + re.escape(venue) + r"\s*$", "", title, flags=re.I) or title
+        found.append({"title": title[:120], "date": day.isoformat(),
+                      "time": f"{int(tm.group(1)):02d}:{tm.group(2) or '00'}" if tm else None,
+                      "venue": venue[:80], "text": (header + "\n" + b.strip())[:400]})
+        header = ""
+    return found
+
+
+_CAP = r"[A-ZÉÈÀÂÎ][\w'’-]*"
+RX_AT = re.compile(r"\b(?:au|à la|à l['’]|aux|chez)[ \t]+(" + _CAP + r"(?:[ \t]+(?:(?:de|des|du|la|le)[ \t]+|[ld]['’])?" + _CAP + r")*)")
+
+
+def _is_info_line(line: str) -> bool:
+    """Ligne de date, d'heure ou de lieu : pas un titre."""
+    n = norm(line)
+    return bool(RX_PIN.search(line) or RX_DATE_TXT.search(n) or RX_DATE_NUM.search(line)
+                or re.fullmatch(r"\W*(?:\d{1,2}\s?h\s?\d{0,2}|a partir de .*)\W*", n or "x"))
+
+
+def _clean_line(line: str) -> str:
+    """Retire emojis, hashtags et mentions d'une ligne de légende."""
+    return re.sub(r"\s+", " ", re.sub(r"[#@]\w[\w.]*|[^\w\s'’&:!?,.()«»\"/-]", "", line)).strip(" -–—:•|")
+
+
+def fetch_instagram_posts() -> list[dict]:
+    token, uid = os.environ.get("IG_ACCESS_TOKEN"), os.environ.get("IG_USER_ID")
+    accounts = CONFIG.get("instagramAccounts") or []
+    if not accounts:
+        raise RuntimeError("aucun compte dans instagramAccounts")
+    if not token or not uid:
+        raise RuntimeError("IG_ACCESS_TOKEN ou IG_USER_ID absente")
+    posts = []
+    for acc in accounts:
+        fields = (f"business_discovery.username({acc}){{username,media.limit(50)"
+                  "{id,caption,timestamp,permalink,media_type,media_url,thumbnail_url}}")
+        data = get_json(f"{GRAPH}/{uid}?" + urllib.parse.urlencode({"fields": fields, "access_token": token}))
+        for m in ((data.get("business_discovery") or {}).get("media") or {}).get("data", []):
+            m["account"] = acc
+            posts.append(m)
+        time.sleep(1)
+    return posts
+
+
+def instagram_events() -> list[dict]:
+    """Met à jour le cache avec les posts du jour et renvoie toutes les annonces encore à venir."""
+    cache = json.loads(IG_CACHE.read_text(encoding="utf-8")) if IG_CACHE.exists() else {"posts": {}}
+    for p in fetch_instagram_posts():
+        posted = parse_dt(p.get("timestamp"), dt.timezone.utc) or NOW
+        cache["posts"][p["id"]] = {
+            "account": p["account"], "permalink": p.get("permalink", ""), "posted": posted.isoformat(),
+            "image": p.get("thumbnail_url") if p.get("media_type") == "VIDEO" else p.get("media_url", ""),
+            "announces": parse_caption(p.get("caption", ""), posted),
+        }
+    # On oublie les posts dont toutes les annonces sont passées.
+    today = NOW.date().isoformat()
+    cache["posts"] = {k: v for k, v in cache["posts"].items() if any(a["date"] >= today for a in v["announces"])}
+    IG_CACHE.parent.mkdir(parents=True, exist_ok=True)
+    IG_CACHE.write_text(json.dumps(cache, ensure_ascii=False, indent=1), encoding="utf-8")
+    out = []
+    for p in cache["posts"].values():
+        for a in p["announces"]:
+            out.append({**a, "account": p["account"], "permalink": p["permalink"], "image": p.get("image", "")})
+    return out
+
+
+TITLE_STOP = {"de", "du", "des", "la", "le", "les", "et", "a", "au", "aux", "en", "un", "une", "the", "concert",
+              "spectacle", "lyon", "live", "tour", "tournee", "soiree", "presente", "avec", "feat", "x", "vs"}
+
+
+def _tokens(s: str) -> set[str]:
+    return {w for w in norm(s).split() if len(w) > 1 and w not in TITLE_STOP}
+
+
+def correlate(announce: dict, events_by_date: dict[str, list[dict]]) -> tuple[dict | None, float]:
+    """Cherche l'événement déjà présent qui correspond à une annonce Instagram.
+
+    Score : mots du titre en commun (le plus important), même lieu, même heure.
+    On regarde le jour annoncé et la veille / le lendemain (date mal recopiée, fin de soirée après minuit).
+    """
+    a_tok = _tokens(announce["title"]) | _tokens(announce.get("text", "")[:200])
+    a_vid = match_venue(announce.get("venue", ""))
+    d = dt.date.fromisoformat(announce["date"])
+    best, best_score = None, 0.0
+    for delta in (0, -1, 1):
+        for e in events_by_date.get((d + dt.timedelta(days=delta)).isoformat(), []):
+            e_tok = _tokens(e["title"])
+            if not e_tok:
+                continue
+            common = len(e_tok & a_tok) / len(e_tok)  # part du titre existant retrouvée dans l'annonce
+            same_venue = bool(a_vid and a_vid == e.get("venueId")) or \
+                bool(announce.get("venue") and _tokens(announce["venue"]) & _tokens(e["venue"]))
+            score = common + (0.35 if same_venue else 0) + (0.1 if announce.get("time") and announce["time"] == e.get("time") else 0)
+            score -= 0.15 * abs(delta)
+            if score > best_score:
+                best, best_score = e, score
+    return (best, best_score) if best_score >= 0.6 else (None, best_score)
+
+
+def merge_instagram(events: list[dict]) -> int:
+    """Rattache chaque annonce Instagram à l'événement existant correspondant, sinon l'ajoute.
+
+    Renvoie le nombre d'événements créés. Lève une exception si la source n'est pas disponible.
+    """
+    by_date: dict[str, list[dict]] = {}
+    for e in events:
+        by_date.setdefault(e["date"], []).append(e)
+    linked = created = 0
+    for a in instagram_events():
+        match, _ = correlate(a, by_date)
+        seen = {"account": a["account"], "url": a["permalink"]}
+        if match:
+            if seen not in match.setdefault("seenOn", []):
+                match["seenOn"].append(seen)
+            linked += 1
+            continue
+        start = parse_dt(a["date"] + ("T" + a["time"] if a.get("time") else ""))
+        cat, genre = oa_category(norm(a["title"] + " " + a.get("text", "")))
+        ev = make_event(title=a["title"] or "Événement", start=start, source="Instagram", category=cat, genre=genre,
+                        venue_name=a.get("venue", ""), ticket_url=a["permalink"], vendor=f"Instagram @{a['account']}",
+                        image=a.get("image", ""), has_time=bool(a.get("time")), description=a.get("text", ""))
+        if ev:
+            ev["seenOn"] = [seen]
+            events.append(ev)
+            by_date.setdefault(ev["date"], []).append(ev)  # deux posts sur le même événement = un seul
+            created += 1
+    log(f"  Instagram : {linked} annonces rattachées à un événement existant, {created} nouveaux événements")
+    return created
+
+
 # ------------------------------------------------------------------- Manuel
 def fetch_manual():
     if not MANUAL.exists():
@@ -730,6 +926,18 @@ def main():
             log(f"  ignorée : {e}")
 
     events = dedupe(all_events)
+
+    # Instagram en dernier : chaque annonce est comparée à tout ce que les autres sources ont trouvé.
+    log("→ Instagram")
+    try:
+        before = len(events)
+        merge_instagram(events)
+        report["Instagram"] = {"ok": True, "count": sum(1 for e in events if e.get("seenOn")),
+                               "new": len(events) - before}
+    except Exception as e:
+        report["Instagram"] = {"ok": False, "count": 0, "error": str(e)[:200]}
+        log(f"  ignorée : {e}")
+
     today = NOW.date().isoformat()
     for e in events:
         e["firstSeen"] = previous.get(e["id"], {}).get("firstSeen", today)

@@ -1,5 +1,5 @@
 {
- "generatedAt": "2026-11-09T16:44:19+01:00",
+ "generatedAt": "2026-11-09T16:58:50+01:00",
  "sources": {
   "Ticketmaster": {
    "ok": true,
@@ -34,6 +34,11 @@
   "Ajouts manuels": {
    "ok": true,
    "count": 0
+  },
+  "Instagram": {
+   "ok": false,
+   "count": 0,
+   "error": "IG_ACCESS_TOKEN ou IG_USER_ID absente"
   }
  },
  "venues": [

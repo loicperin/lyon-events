@@ -73,7 +73,8 @@
   function haystack(e) {
     if (!e._hay) {
       e._hay = " " + words([e.title, e.venue, e.city, e.genre, genreFr(e.genre), e.competition,
-        CATS[e.category]?.one, CATS[e.category]?.label, CAT_WORDS[e.category], e.vendor, e.description].join(" ")) + " ";
+        CATS[e.category]?.one, CATS[e.category]?.label, CAT_WORDS[e.category], e.vendor, e.description,
+        ...(e.seenOn || []).map((s) => "instagram " + s.account)].join(" ")) + " ";
     }
     return e._hay;
   }
@@ -207,7 +208,9 @@
   const TICKET = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a3 3 0 0 0 0 6v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a3 3 0 0 0 0-6V6Zm11 1v2h2V7h-2Zm0 4v2h2v-2h-2Zm0 4v2h2v-2h-2Z"/></svg>`;
 
   // Agendas (pas des billetteries) : le bouton dit « Voir sur » plutôt que « Billets sur ».
-  const INFO_SOURCES = new Set(["OpenAgenda", "Songkick"]);
+  const INFO_SOURCES = new Set(["OpenAgenda", "Songkick", "Instagram"]);
+  // Comptes Instagram qui ont annoncé l'événement (rapprochement fait par le robot quotidien).
+  const seenOn = (e) => (e.seenOn || []).filter((s) => safeUrl(s.url));
 
   function price(e) {
     if (e.priceMin == null) return "";
@@ -246,6 +249,7 @@
           <button class="btn icon" data-ics="${esc(e.id)}" title="Ajouter à mon agenda" aria-label="Ajouter à mon agenda">${CAL}</button>
         </div>
         ${alts.length ? `<div class="alt">Aussi sur ${alts.map((a) => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.vendor)}</a>`).join(", ")}</div>` : ""}
+        ${e.source !== "Instagram" && seenOn(e).length ? `<div class="alt">Annoncé sur Instagram par ${seenOn(e).map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">@${esc(s.account)}</a>`).join(", ")}</div>` : ""}
       </div>
     </article>`;
   }

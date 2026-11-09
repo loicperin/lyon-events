@@ -31,6 +31,8 @@ jobs:
           TICKETMASTER_API_KEY: ${{ secrets.TICKETMASTER_API_KEY }}
           FOOTBALL_DATA_API_KEY: ${{ secrets.FOOTBALL_DATA_API_KEY }}
           OPENAGENDA_API_KEY: ${{ secrets.OPENAGENDA_API_KEY }}
+          IG_ACCESS_TOKEN: ${{ secrets.IG_ACCESS_TOKEN }}
+          IG_USER_ID: ${{ secrets.IG_USER_ID }}
         run: python scripts/fetch_events.py
 
       - name: Enregistrer les données dans le dépôt
@@ -38,6 +40,7 @@ jobs:
           git config user.name "lyon-events-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add site/events.json
+          [ -f data/instagram.json ] && git add data/instagram.json
           git diff --cached --quiet || git commit -m "Mise à jour des événements $(date -u +%F)"
           git push
 
