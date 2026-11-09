@@ -578,7 +578,12 @@ def main():
     events = dedupe(all_events)
     today = NOW.date().isoformat()
     for e in events:
-        e["firstSeen"] = previous.get(e["id"], {}).get("firstSeen", today if previous else "")
+        e["firstSeen"] = previous.get(e["id"], {}).get("firstSeen", today)
+    # Premier gros import : rien n'est « nouveau », sinon tout le site serait marqué Nouveau.
+    fresh = [e for e in events if e["firstSeen"] == today and e["id"] not in previous]
+    if len(previous) < 50 or len(fresh) > 0.5 * len(events):
+        for e in fresh:
+            e["firstSeen"] = ""
     events.sort(key=lambda e: (e["start"], e["title"]))
 
     # Si toutes les sources échouent, on garde les données de la veille plutôt qu'un site vide.
