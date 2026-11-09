@@ -219,6 +219,10 @@
       "name": "Olympique Lyonnais",
       "sport": "football",
       "footballDataId": 523,
+      "fixtureFeed": "ligue-1",
+      "fixtureName": "Olympique Lyonnais",
+      "shortName": "OL",
+      "competition": "Ligue 1",
       "sportsDbSearch": "Lyon",
       "sportsDbSport": "Soccer",
       "venueId": "groupama-stadium",
@@ -241,7 +245,16 @@
       "ticketUrl": "https://www.ldlcasvel.com"
     }
   ],
-  "jsonLdPages": [],
+  "jsonLdPages": [
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=2", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=3", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=4", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=5", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=6", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=7", "source": "Songkick", "category": "concert" },
+    { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=8", "source": "Songkick", "category": "concert" }
+  ],
   "openAgendaAgendas": [],
-  "_aide_jsonLdPages": "Pages agenda de salles qui publient des données schema.org (JSON-LD). Format : {\"url\": \"https://...\", \"venueId\": \"...\"}. Les pages testées en novembre 2026 (Transbordeur, Halle Tony Garnier, Radiant, Ninkasi) n'en publiaient pas ou bloquaient les robots ; Ticketmaster couvre déjà ces salles."
+  "_aide_jsonLdPages": "Pages qui publient leurs événements en données schema.org (JSON-LD), lues en respectant robots.txt. Format : {\"url\": \"https://...\", \"venueId\": \"...\", \"source\": \"Nom affiché\", \"category\": \"concert\"}. Testé en novembre 2026 : Songkick et Eventbrite autorisent et publient ces données (Eventbrite écarté : surtout des cours et ateliers). Interdits par robots.txt : Fnac Spectacles, OnlyLyon (lyon-france.com), Tribune de Lyon, AllEvents, Lyon Première, Le Bon Plan. Bloquent les robots : Petit Bulletin, Bandsintown, Infoconcert, Shotgun."
 }

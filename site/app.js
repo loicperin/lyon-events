@@ -16,6 +16,86 @@
   const esc = (s) => String(s ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
   const safeUrl = (u) => (/^https?:\/\//i.test(u || "") ? u : "");
   const fold = (s) => String(s || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+  const words = (s) => fold(s).replace(/[^a-z0-9]+/g, " ").trim();
+
+  // ------------------------------------------------------------ recherche
+  // Genres Ticketmaster (en anglais) affichés et cherchables en français.
+  const GENRE_FR = {
+    "Cultural": "Culture", "Theatre": "Théâtre", "Variety": "Variétés", "Circus & Specialty Acts": "Cirque",
+    "Dance": "Danse", "Chanson Francaise": "Chanson française", "Children's Theatre": "Jeune public",
+    "Music": "Musique", "Spectacular": "Grand spectacle", "Dance/Electronic": "Électro",
+    "Magic & Illusion": "Magie", "World": "Musiques du monde", "Religious": "Religieux",
+    "Children's Music": "Musique jeune public", "Ice Shows": "Spectacle sur glace", "Classical": "Classique",
+    "Opera": "Opéra", "Miscellaneous": "", "Comedy": "Humour", "Family": "Famille", "Fairs & Festivals": "Festival",
+    "Country": "Country", "Alternative": "Alternatif", "Folk": "Folk", "Soul": "Soul", "Funk": "Funk",
+  };
+  const genreFr = (g) => (g in GENRE_FR ? GENRE_FR[g] : g || "");
+
+  // Familles de mots équivalents : taper l'un trouve les événements qui contiennent n'importe quel autre.
+  const SYN_GROUPS = [
+    ["sport", "sports", "sportif", "sportive"],
+    ["foot", "football", "soccer", "ol", "olympique lyonnais", "ligue 1"],
+    ["rugby", "lou", "top 14"],
+    ["basket", "basketball", "asvel", "euroleague", "betclic elite"],
+    ["hockey"],
+    ["concert", "concerts", "musique", "music", "live", "tournee"],
+    ["humour", "humoriste", "comique", "comedy", "stand up", "standup", "one man show", "one woman show", "sketch"],
+    ["theatre", "piece", "comedie"],
+    ["enfant", "enfants", "jeune public", "famille", "familial", "kids", "children", "jeunesse"],
+    ["cirque", "circus", "acrobate", "acrobatie", "acrobaties"],
+    ["danse", "dance", "ballet", "danseur", "danseurs", "choregraphie"],
+    ["electro", "electronique", "electronic", "techno", "house", "dj", "clubbing"],
+    ["rap", "hip hop", "hiphop", "rappeur"],
+    ["classique", "classical", "orchestre", "symphonique", "philharmonique", "piano"],
+    ["opera", "lyrique"],
+    ["magie", "magicien", "magic", "illusion", "illusionniste", "mentaliste"],
+    ["spectacle", "spectacles", "show"],
+    ["chanson", "chanson francaise", "variete", "varietes", "variety"],
+    ["metal", "hard rock", "heavy"],
+    ["festival", "festivals", "fest"],
+    ["jazz", "blues", "swing"],
+    ["glace", "ice", "patinage"],
+    ["expo", "exposition", "expositions", "musee", "galerie", "vernissage"],
+    ["cinema", "film", "films", "projection", "documentaire"],
+    ["conference", "debat", "rencontre", "dedicace"],
+    ["atelier", "ateliers", "stage", "initiation"],
+    ["visite", "visites", "balade", "patrimoine"],
+  ];
+  const SYN = {};
+  for (const g of SYN_GROUPS) for (const w of g) SYN[w] = [...new Set([...(SYN[w] || []), ...g])];
+  // Mots-clés ajoutés selon la catégorie de l'événement.
+  const CAT_WORDS = {
+    football: "sport match foot football", rugby: "sport match rugby", basket: "sport match basket",
+    hockey: "sport match hockey", sport: "sport match", concert: "concert musique", spectacle: "spectacle",
+  };
+  const STOP = new Set(["de", "du", "des", "la", "le", "les", "l", "d", "un", "une", "et", "a", "au", "aux", "en", "pour", "sur", "avec", "a lyon", "lyon"]);
+
+  function haystack(e) {
+    if (!e._hay) {
+      e._hay = " " + words([e.title, e.venue, e.city, e.genre, genreFr(e.genre), e.competition,
+        CATS[e.category]?.one, CATS[e.category]?.label, CAT_WORDS[e.category], e.vendor, e.description].join(" ")) + " ";
+    }
+    return e._hay;
+  }
+  // Une alternative courte (« ol », « dj ») doit être un mot entier ; sinon le début d'un mot suffit.
+  const hit = (hay, w) => hay.includes(" " + w + (w.length <= 3 ? " " : ""));
+  function parseQuery(q) {
+    let rest = " " + words(q) + " ";
+    const terms = [];
+    // Expressions de plusieurs mots d'abord (« stand up », « jeune public »).
+    for (const k of Object.keys(SYN).filter((k) => k.includes(" ")).sort((a, b) => b.length - a.length)) {
+      if (rest.includes(" " + k + " ")) { terms.push({ typed: k, alts: SYN[k] }); rest = rest.replace(" " + k + " ", " "); }
+    }
+    for (const w of rest.trim().split(" ")) {
+      if (!w || STOP.has(w)) continue;
+      const alts = [...(SYN[w] || [])];
+      if (w.length > 3 && w.endsWith("s")) alts.push(w.slice(0, -1)); // pluriel : « concerts » -> « concert »
+      terms.push({ typed: w, alts });
+    }
+    return terms;
+  }
+  // Le mot tapé peut être le début d'un mot (« transbo ») ; ses synonymes sont cherchés tels quels.
+  const termHit = (hay, t) => (SYN[t.typed] ? hit(hay, t.typed) : hay.includes(" " + t.typed)) || t.alts.some((a) => hit(hay, a));
 
   // Dates calculées à l'heure de Paris, quel que soit le fuseau du visiteur.
   const parisISO = (d) => new Intl.DateTimeFormat("en-CA", { timeZone: "Europe/Paris", year: "numeric", month: "2-digit", day: "2-digit" }).format(d);
@@ -70,6 +150,8 @@
 
   // ------------------------------------------------------------ filtering
   const isNew = (e) => e.firstSeen && e.firstSeen >= addDays(TODAY, -2);
+  // loose = true : au moins un des mots suffit (résultats approchants quand la recherche exacte ne donne rien).
+  let qTerms = [], loose = false;
   function baseFilter(e, skip) {
     if (e.date < TODAY) return false;
     if (skip !== "cat" && state.cat && e.category !== state.cat) return false;
@@ -77,11 +159,16 @@
     if (state.onlyNew && !isNew(e)) return false;
     const df = DATE_FILTERS.find((f) => f.id === state.date) || DATE_FILTERS[0];
     if (!df.test(e.date)) return false;
-    if (state.q) {
-      const hay = fold([e.title, e.venue, e.city, e.genre, e.competition, CATS[e.category]?.one].join(" "));
-      if (!fold(state.q).split(/\s+/).every((w) => hay.includes(w))) return false;
+    if (qTerms.length) {
+      const hay = haystack(e);
+      if (!(loose ? qTerms.some((t) => termHit(hay, t)) : qTerms.every((t) => termHit(hay, t)))) return false;
     }
     return true;
+  }
+  function prepareQuery() {
+    qTerms = parseQuery(state.q);
+    loose = false;
+    if (qTerms.length > 1 && !DATA.events.some((e) => baseFilter(e))) loose = true;
   }
 
   // ------------------------------------------------------------ rendering
@@ -119,6 +206,9 @@
   const CAL = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V2Zm12 8H5v9h14v-9Z"/></svg>`;
   const TICKET = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a3 3 0 0 0 0 6v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a3 3 0 0 0 0-6V6Zm11 1v2h2V7h-2Zm0 4v2h2v-2h-2Zm0 4v2h2v-2h-2Z"/></svg>`;
 
+  // Agendas (pas des billetteries) : le bouton dit « Voir sur » plutôt que « Billets sur ».
+  const INFO_SOURCES = new Set(["OpenAgenda", "Songkick"]);
+
   function price(e) {
     if (e.priceMin == null) return "";
     const f = (n) => Number(n).toLocaleString("fr-FR", { style: "currency", currency: e.currency || "EUR", maximumFractionDigits: Number(n) % 1 ? 2 : 0 });
@@ -144,14 +234,14 @@
       <div class="mwrap">${media}</div>
       <div class="body">
         <div class="meta-top"><span class="time">${e.time ? esc(e.time.replace(":", "h")) : "Horaire à venir"}</span>
-          <span class="badge cat" style="--c:var(--c-${c})">${esc(e.genre && c === "concert" ? e.genre : CATS[c].one)}</span>
+          <span class="badge cat" style="--c:var(--c-${c})">${esc(genreFr(e.genre) || CATS[c].one)}</span>
           ${e.competition ? `<span class="tag">${esc(e.competition)}</span>` : ""}</div>
         ${isNew(e) || e.status ? `<div class="tags">${isNew(e) ? `<span class="badge new">Nouveau</span>` : ""}${e.status ? `<span class="badge warn">${esc(e.status)}</span>` : ""}</div>` : ""}
         <h3 class="title">${esc(e.title)}</h3>
         <div class="place">${PIN}<span><b>${esc(e.venue)}</b>${e.city ? ` · ${esc(e.city)}` : ""}</span></div>
         ${price(e) ? `<div class="price">${price(e)}</div>` : ""}
         <div class="actions">
-          ${tUrl ? `<a class="btn primary" href="${esc(tUrl)}" target="_blank" rel="noopener">${TICKET} Billets sur ${esc(vendor)}</a>` : ""}
+          ${tUrl ? `<a class="btn primary" href="${esc(tUrl)}" target="_blank" rel="noopener">${TICKET} ${INFO_SOURCES.has(e.source) ? "Voir sur" : "Billets sur"} ${esc(vendor)}</a>` : ""}
           <a class="btn icon" href="${esc(mapsUrl(e))}" target="_blank" rel="noopener" title="Itinéraire" aria-label="Itinéraire vers ${esc(e.venue)}">${MAP}</a>
           <button class="btn icon" data-ics="${esc(e.id)}" title="Ajouter à mon agenda" aria-label="Ajouter à mon agenda">${CAL}</button>
         </div>
@@ -163,13 +253,15 @@
   function renderAgenda() {
     const list = DATA.events.filter((e) => baseFilter(e));
     const shown = list.slice(0, state.limit);
-    $("#count").textContent = list.length ? `${list.length} événement${list.length > 1 ? "s" : ""}` : "";
+    $("#count").textContent = list.length
+      ? `${list.length} événement${list.length > 1 ? "s" : ""}${loose ? ` contenant au moins un des mots de « ${state.q} » (aucun ne les contient tous)` : ""}`
+      : "";
     if (!DATA.events.length) {
       $("#agenda").innerHTML = `<div class="empty"><strong>La première mise à jour n'a pas encore eu lieu</strong>Les événements apparaîtront ici après le prochain passage du robot quotidien.</div>`;
       return;
     }
     if (!list.length) {
-      $("#agenda").innerHTML = `<div class="empty"><strong>Aucun événement ne correspond</strong>Essaie d'élargir la période ou de retirer un filtre.<div class="more"><button class="btn" id="reset">Réinitialiser les filtres</button></div></div>`;
+      $("#agenda").innerHTML = `<div class="empty"><strong>Aucun événement ne correspond${state.q ? ` à « ${esc(state.q)} »` : ""}</strong>${state.q ? "Essaie un autre mot (par exemple « concert », « humour », « rugby », « enfants ») ou retire un filtre." : "Essaie d'élargir la période ou de retirer un filtre."}<div class="more"><button class="btn" id="reset">Réinitialiser les filtres</button></div></div>`;
       return;
     }
     const groups = new Map();
@@ -206,6 +298,7 @@
   }
 
   function render() {
+    prepareQuery();
     renderCats(); renderDates(); renderVenueSelect();
     $("#q").value = state.q;
     $("#onlyNew").checked = state.onlyNew;

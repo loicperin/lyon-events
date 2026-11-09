@@ -78,6 +78,22 @@ def norm(s: str) -> str:
     return re.sub(r"[^a-z0-9]+", " ", s.lower()).strip()
 
 
+def distance_km(lat1: float, lng1: float, lat2: float, lng2: float) -> float:
+    import math
+    p = math.pi / 180
+    a = 0.5 - math.cos((lat2 - lat1) * p) / 2 + math.cos(lat1 * p) * math.cos(lat2 * p) * (1 - math.cos((lng2 - lng1) * p)) / 2
+    return 12742 * math.asin(math.sqrt(a))
+
+
+def too_far(lat, lng) -> bool:
+    """Vrai si des coordonnées sont connues et hors du rayon autour de Lyon."""
+    try:
+        c = CONFIG["center"]
+        return distance_km(float(lat), float(lng), c["lat"], c["lng"]) > c["radiusKm"]
+    except (TypeError, ValueError):
+        return False
+
+
 def match_venue(name: str, city: str = "") -> str | None:
     n = norm(name)
     if not n:
@@ -212,7 +228,8 @@ def vendor_from_url(url: str) -> str:
                        ("weezevent", "Weezevent"), ("billetweb", "Billetweb"),
                        ("helloasso", "HelloAsso"), ("ol.fr", "Billetterie OL"),
                        ("lourugby", "Billetterie LOU"), ("eventbrite", "Eventbrite"),
-                       ("ticketac", "Ticketac"), ("festik", "Festik")]:
+                       ("ticketac", "Ticketac"), ("festik", "Festik"), ("songkick", "Songkick"),
+                       ("openagenda", "OpenAgenda")]:
         if key in host:
             return label
     return host.replace("www.", "") if host else ""
@@ -475,15 +492,23 @@ def fetch_jsonld():
                 sd = e.get("startDate") or ""
                 img = first(e.get("image"))
                 img = img.get("url") if isinstance(img, dict) else img
+                geo = loc.get("geo") if isinstance(loc.get("geo"), dict) else {}
+                if too_far(geo.get("latitude"), geo.get("longitude")):
+                    continue  # agendas « région lyonnaise » qui incluent Valence, Grenoble…
                 vid = match_venue(loc.get("name", ""), addr.get("addressLocality", "")) or page.get("venueId")
+                name = e.get("name") or ""
+                if loc.get("name") and name.lower().endswith(" @ " + loc["name"].lower()):
+                    name = name[: -len(loc["name"]) - 3]  # Songkick : « Artiste @ Salle »
                 price = off.get("price") or off.get("lowPrice")
                 try:
                     price = float(str(price).replace(",", ".")) if price not in (None, "") else None
                 except ValueError:
                     price = None
                 ev = make_event(
-                    title=e.get("name"), start=parse_dt(sd), end=parse_dt(e.get("endDate")),
-                    source=urllib.parse.urlparse(url).netloc.replace("www.", ""), category=cat,
+                    title=name, start=parse_dt(sd), end=parse_dt(e.get("endDate")),
+                    source=page.get("source") or urllib.parse.urlparse(url).netloc.replace("www.", ""),
+                    category=page.get("category") or cat,
+                    lat=geo.get("latitude"), lng=geo.get("longitude"),
                     venue_name=loc.get("name", ""), venue_id=vid,
                     city=addr.get("addressLocality", ""), address=addr.get("streetAddress", ""),
                     ticket_url=urllib.parse.urljoin(url, t_url), vendor=vendor_from_url(urllib.parse.urljoin(url, t_url)),
@@ -498,6 +523,132 @@ def fetch_jsonld():
                     n += 1
         log(f"  {url} : {n} événements")
         time.sleep(2)
+    return events
+
+
+# ------------------------------------------------- Calendriers de championnat (fixturedownload)
+def fetch_fixtures():
+    """Saison complète des matchs à domicile (flux JSON publics de fixturedownload.com, sans clé)."""
+    events = []
+    year = NOW.year if NOW.month >= 7 else NOW.year - 1
+    for t in CONFIG["teams"]:
+        feed, home = t.get("fixtureFeed"), t.get("fixtureName")
+        if not feed or not home:
+            continue
+        for y in (year, year + 1):
+            try:
+                matches = get_json(f"https://fixturedownload.com/feed/json/{feed}-{y}")
+            except urllib.error.HTTPError as e:
+                if e.code == 404:
+                    continue  # saison pas encore publiée
+                raise
+            for m in matches:
+                if m.get("HomeTeam") != home:
+                    continue
+                away = m.get("AwayTeam") or "à déterminer"
+                st = parse_dt(m.get("DateUtc"), dt.timezone.utc)
+                ev = make_event(
+                    title=f"{t.get('shortName', home)} – {away}", start=st,
+                    has_time=bool(st) and (st.hour, st.minute) != (0, 0),  # minuit = horaire pas encore fixé
+                    source="Calendrier officiel", category=t["sport"], competition=t.get("competition", ""),
+                    venue_id=t["venueId"], ticket_url=t["ticketUrl"], vendor=vendor_from_url(t["ticketUrl"]),
+                )
+                if ev:
+                    events.append(ev)
+            time.sleep(1)
+    return events
+
+
+# ------------------------------------------- OpenAgenda, copie publique (OpenDataSoft, sans clé)
+ODS_URL = "https://public.opendatasoft.com/api/explore/v2.1/catalog/datasets/evenements-publics-openagenda/records"
+# Événements publics qui ne sont pas des sorties : on les écarte.
+OA_SKIP = re.compile(r"\b(emploi|recrut\w*|job ?dating|conseil municipal|permanence|reunion publique|"
+                     r"semaine de l industrie|portes? ouvertes?|formation|webinaire|collecte de sang|don du sang|"
+                     r"enquete publique|concertation|france travail|salon de l emploi|celibataires?|speed dating)\b")
+OA_CATS = [  # (catégorie, genre affiché, mots-clés)
+    ("concert", "", r"\b(concert|musique|musical|live|jazz|rock|rap|electro|dj|chorale|orchestre|recital|opera)\b"),
+    ("spectacle", "Humour", r"\b(humour|humoriste|stand ?up|one (wo)?man show|comique)\b"),
+    ("spectacle", "Cirque", r"\b(cirque|acrobat\w*|jongl\w*)\b"),
+    ("spectacle", "Danse", r"\b(danse|ballet|choregraph\w*)\b"),
+    ("autre", "Exposition", r"\b(exposition|expo|vernissage|musee|galerie)\b"),
+    ("spectacle", "Jeune public", r"\b(jeune public|marionnettes?|contes?|conteuse?)\b"),
+    ("spectacle", "Théâtre", r"\b(theatre|spectacle|piece|impro\w*)\b"),
+    ("sport", "", r"\b(sport\w*|match|course a pied|trail|marathon|tournoi|running|velo)\b"),
+    ("autre", "Cinéma", r"\b(cinema|projection|film|documentaire|court metrage)\b"),
+    ("autre", "Festival", r"\b(festival|fete|carnaval)\b"),
+    ("autre", "Visite", r"\b(visite|balade|patrimoine)\b"),
+    ("autre", "Conférence", r"\b(conference|rencontre|debat|lecture|dedicace)\b"),
+    ("autre", "Atelier", r"\b(atelier|stage|initiation)\b"),
+]
+
+
+def oa_category(text: str) -> tuple[str, str]:
+    for cat, genre, rx in OA_CATS:
+        if re.search(rx, text):
+            return cat, genre
+    return "autre", ""
+
+
+def fetch_openagenda_public():
+    c = CONFIG["center"]
+    where = (f"within_distance(location_coordinates, geom'POINT({c['lng']} {c['lat']})', {c['radiusKm']}km)"
+             " AND lastdate_end >= now()")
+    events, offset, per = [], 0, 100
+    while offset < 5000:
+        q = {"where": where, "order_by": "firstdate_begin", "limit": per, "offset": offset,
+             "select": "uid,title_fr,description_fr,keywords_fr,image,canonicalurl,registration,timings,"
+                       "location_name,location_address,location_city,location_coordinates,status,originagenda_title"}
+        data = get_json(ODS_URL + "?" + urllib.parse.urlencode(q))
+        rows = data.get("results") or []
+        for r in rows:
+            title = r.get("title_fr") or ""
+            kws = r.get("keywords_fr") or ""
+            kws = " ".join(kws) if isinstance(kws, list) else str(kws)
+            text = norm(" ".join([title, kws, r.get("description_fr") or "", r.get("originagenda_title") or ""]))
+            if OA_SKIP.search(text):
+                continue
+            status = r.get("status") or {}
+            if isinstance(status, str):
+                try:
+                    status = json.loads(status)
+                except ValueError:
+                    status = {}
+            # Statuts OpenAgenda : 1 programmé, 2 reprogrammé, 3 en ligne, 4 reporté, 5 complet, 6 annulé.
+            sid = status.get("id") if isinstance(status, dict) else None
+            cat, genre = oa_category(text)
+            reg = r.get("registration") or []
+            if isinstance(reg, str):
+                try:
+                    reg = json.loads(reg)
+                except ValueError:
+                    reg = []
+            links = [x.get("value") for x in reg if isinstance(x, dict) and x.get("type") == "link"]
+            url = links[0] if links else r.get("canonicalurl") or ""
+            timings = r.get("timings") or []
+            if isinstance(timings, str):
+                try:
+                    timings = json.loads(timings)
+                except ValueError:
+                    timings = []
+            geo = r.get("location_coordinates") or {}
+            # Les expositions ont une date par jour d'ouverture : on ne garde que les 3 prochaines.
+            upcoming = [t for t in timings if (parse_dt(t.get("begin")) or NOW) >= NOW - dt.timedelta(hours=6)][:3]
+            for t in upcoming:
+                ev = make_event(
+                    title=title, start=parse_dt(t.get("begin")), end=parse_dt(t.get("end")),
+                    source="OpenAgenda", category=cat, genre=genre,
+                    venue_name=r.get("location_name") or "", city=r.get("location_city") or "",
+                    address=r.get("location_address") or "", lat=geo.get("lat"), lng=geo.get("lon"),
+                    ticket_url=url, vendor=vendor_from_url(url), image=r.get("image") or "",
+                    description=r.get("description_fr") or "",
+                    status={2: "Reprogrammé", 4: "Reporté", 5: "Complet", 6: "Annulé"}.get(sid, ""),
+                )
+                if ev:
+                    events.append(ev)
+        if len(rows) < per:
+            break
+        offset += per
+        time.sleep(0.5)
     return events
 
 
@@ -522,13 +673,16 @@ def fetch_manual():
 # ------------------------------------------------------------------- main
 SOURCES = [
     ("Ticketmaster", fetch_ticketmaster),
+    ("Calendrier Ligue 1", fetch_fixtures),
     ("football-data.org", fetch_football_data),
     ("TheSportsDB", fetch_sportsdb),
-    ("OpenAgenda", fetch_openagenda),
-    ("Sites des salles (JSON-LD)", fetch_jsonld),
+    ("OpenAgenda (public)", fetch_openagenda_public),
+    ("OpenAgenda (clé)", fetch_openagenda),
+    ("Songkick et sites des salles", fetch_jsonld),
     ("Ajouts manuels", fetch_manual),
 ]
-PRIORITY = {"Ticketmaster": 0, "football-data.org": 1, "Ajout manuel": 2, "OpenAgenda": 4, "TheSportsDB": 5}
+PRIORITY = {"Ticketmaster": 0, "football-data.org": 1, "Calendrier officiel": 1, "Ajout manuel": 2,
+            "Songkick": 3, "OpenAgenda": 4, "TheSportsDB": 5}
 
 
 def dedupe(events):

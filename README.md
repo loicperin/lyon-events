@@ -9,13 +9,16 @@ Le site se met à jour tout seul chaque matin grâce à GitHub Actions et il est
 | Source | Ce qu'elle apporte | Clé nécessaire |
 |---|---|---|
 | [Ticketmaster Discovery API](https://developer.ticketmaster.com) | Concerts et spectacles vendus sur Ticketmaster dans un rayon de 25 km (LDLC Arena, Halle Tony Garnier, Transbordeur, Radiant…) avec le lien d'achat | `TICKETMASTER_API_KEY` (gratuite) |
-| [football-data.org](https://www.football-data.org) | Tous les matchs à domicile de l'OL (Ligue 1, Coupe d'Europe) au Groupama Stadium | `FOOTBALL_DATA_API_KEY` (gratuite, facultative) |
+| [fixturedownload.com](https://fixturedownload.com) | Calendrier complet des matchs de l'OL à domicile en Ligue 1 | aucune |
+| [OpenAgenda, copie publique](https://public.opendatasoft.com/explore/dataset/evenements-publics-openagenda/) | Agendas culturels publics à 25 km (concerts, expos, cinéma, jeune public, festivals…), sans les forums emploi et réunions | aucune |
+| [Songkick](https://www.songkick.com/metro-areas/28889-france-lyon) | Concerts à Lyon, y compris les petites salles absentes de Ticketmaster (8 pages lues par jour, robots.txt respecté) | aucune |
+| [football-data.org](https://www.football-data.org) | Matchs à domicile de l'OL, coupes d'Europe comprises | `FOOTBALL_DATA_API_KEY` (gratuite, facultative) |
 | [TheSportsDB](https://www.thesportsdb.com) | Prochain match à domicile du LOU Rugby, de l'ASVEL et de l'OL | aucune |
 | Pages agenda des salles | Les données structurées (schema.org) que certaines salles publient elles-mêmes, en respectant leur robots.txt | aucune |
 | [OpenAgenda](https://openagenda.com) | Agendas culturels publics, si tu ajoutes leurs identifiants dans `config/sources.json` | `OPENAGENDA_API_KEY` (facultative) |
 | `data/manual.json` | Les événements que tu veux ajouter à la main | aucune |
 
-Fnac Spectacles et See Tickets n'ont pas d'API publique, donc le script ne va pas lire leurs pages automatiquement. Leurs liens apparaissent quand une salle les publie elle-même, et ils restent accessibles en bas de page.
+Sources écartées (vérifié en novembre 2026) : Fnac Spectacles, OnlyLyon, Tribune de Lyon, AllEvents, Lyon Première et Le Bon Plan interdisent les robots dans leur robots.txt ; Petit Bulletin, Bandsintown, Infoconcert et Shotgun les bloquent ; Eventbrite contient surtout des cours et ateliers. Facebook, Instagram et TikTok ne sont pas lus : leurs conditions d'utilisation interdisent la collecte automatique et leurs contenus demandent une connexion. Fnac Spectacles et See Tickets n'ont pas d'API publique, donc le script ne va pas lire leurs pages automatiquement. Leurs liens apparaissent quand une salle les publie elle-même, et ils restent accessibles en bas de page.
 
 Une source en panne n'empêche pas les autres de fonctionner, et si tout échoue un jour, le site garde les données de la veille.
 
