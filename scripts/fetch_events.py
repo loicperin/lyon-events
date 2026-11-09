@@ -139,7 +139,7 @@ def make_event(*, title, start, source, category="autre", venue_name="", venue_i
     vid = venue_id or match_venue(venue_name, city)
     v = VENUES.get(vid or "", {})
     ev = {
-        "title": html.unescape(title).strip(),
+        "title": pretty(html.unescape(title).strip(), True),
         "category": category,
         "genre": genre,
         "competition": competition,
@@ -148,8 +148,8 @@ def make_event(*, title, start, source, category="autre", venue_name="", venue_i
         "date": start.date().isoformat(),
         "time": start.strftime("%H:%M") if has_time else None,
         "venueId": vid,
-        "venue": v.get("name") or venue_name or "Lieu à confirmer",
-        "city": v.get("city") or city,
+        "venue": v.get("name") or pretty(venue_name) or "Lieu à confirmer",
+        "city": v.get("city") or pretty(city),
         "address": v.get("address") or address,
         "lat": v.get("lat", lat),
         "lng": v.get("lng", lng),
@@ -165,6 +165,43 @@ def make_event(*, title, start, source, category="autre", venue_name="", venue_i
     }
     ev["id"] = hashlib.sha1(f"{norm(ev['title'])}|{ev['date']}|{vid or norm(venue_name)}".encode()).hexdigest()[:12]
     return ev
+
+
+KEEP_UPPER = {"DJ", "MC", "OL", "LOU", "ASVEL", "LDLC", "II", "III", "IV", "VI", "TV", "UK", "USA", "ABBA",
+              "AC/DC", "NTM", "IAM", "PNL", "SCH", "JUL", "RnB", "R&B", "XXL", "VIP", "BD", "ONL", "LGBT", "MJC", "EP"}
+SMALL = {"de", "du", "des", "la", "le", "les", "et", "en", "a", "à", "au", "aux", "sur", "pour", "par", "avec",
+         "un", "une", "of", "the", "and", "in", "on", "w", "x", "vs", "feat"}
+
+
+def pretty(s: str, dedupe_parts: bool = False) -> str:
+    """Remet en forme les textes tout en MAJUSCULES venant des billetteries."""
+    s = re.sub(r"\s+", " ", s or "").strip()
+    if dedupe_parts:  # « X - X - Y » devient « X - Y »
+        parts = [p.strip() for p in re.split(r"\s+-\s+", s)]
+        out = []
+        for p in parts:
+            if not out or norm(p) != norm(out[-1]):
+                out.append(p)
+        s = " - ".join(out)
+    letters = [c for c in s if c.isalpha()]
+    if len(letters) < 4 or any(c.islower() for c in letters):
+        return s
+
+    def word(w: str, first: bool) -> str:
+        core = w.strip("()[]«»\"!?.,:;")
+        if core.upper() in KEEP_UPPER or (len(core) <= 3 and re.fullmatch(r"[A-Z]\.?(?:[A-Z]\.?)+", core) and "." in core):
+            return w
+        lw = w.lower()
+        if not first and core.lower() in SMALL:
+            return lw
+        m = re.match(r"^([ld]['’])(.+)$", lw)
+        if m:  # l'amphitheatre -> L'Amphitheatre
+            pre = m.group(1) if not first else m.group(1).capitalize()
+            return pre + m.group(2)[:1].upper() + m.group(2)[1:]
+        return re.sub(r"(^|[-/(\"«])(\w)", lambda x: x.group(1) + x.group(2).upper(), lw)
+
+    words = s.split(" ")
+    return " ".join(word(w, i == 0 or words[i - 1] in ("-", ":", "–")) for i, w in enumerate(words))
 
 
 def vendor_from_url(url: str) -> str:
