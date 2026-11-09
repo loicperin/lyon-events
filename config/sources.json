@@ -256,7 +256,7 @@
     { "url": "https://www.songkick.com/metro-areas/28889-france-lyon?page=8", "source": "Songkick", "category": "concert" }
   ],
   "openAgendaAgendas": [],
-  "instagramAccounts": ["culturellyon"],
+  "instagramAccounts": ["culturel_lyon"],
   "_aide_instagramAccounts": "Identifiants des comptes Instagram (sans @) qui annoncent des événements. Ils doivent être des comptes professionnels (entreprise ou créateur). Lus chaque jour via l'API Instagram Graph (secrets IG_ACCESS_TOKEN et IG_USER_ID).",
   "_aide_jsonLdPages": "Pages qui publient leurs événements en données schema.org (JSON-LD), lues en respectant robots.txt. Format : {\"url\": \"https://...\", \"venueId\": \"...\", \"source\": \"Nom affiché\", \"category\": \"concert\"}. Testé en novembre 2026 : Songkick et Eventbrite autorisent et publient ces données (Eventbrite écarté : surtout des cours et ateliers). Interdits par robots.txt : Fnac Spectacles, OnlyLyon (lyon-france.com), Tribune de Lyon, AllEvents, Lyon Première, Le Bon Plan. Bloquent les robots : Petit Bulletin, Bandsintown, Infoconcert, Shotgun."
 }
