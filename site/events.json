@@ -1,9 +1,9 @@
 {
- "generatedAt": "2026-11-09T15:59:26+01:00",
+ "generatedAt": "2026-11-09T16:11:17+01:00",
  "sources": {
   "Ticketmaster": {
    "ok": true,
-   "count": 2217
+   "count": 2219
   },
   "football-data.org": {
    "ok": false,
