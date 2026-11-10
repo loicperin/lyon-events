@@ -197,6 +197,25 @@ input[type="date"] {
 .venue .next { font-size: 14px; margin: 0; }
 .venue .actions { padding-top: 6px; }
 
+/* ---------- Carte ---------- */
+#mapbox {
+  height: 68vh; min-height: 420px; margin-top: 16px; border-radius: var(--radius);
+  overflow: hidden; border: 1px solid var(--line); box-shadow: var(--shadow); z-index: 0;
+}
+.pin {
+  background: var(--accent); color: #fff; font: 700 13px/1 Inter, system-ui, sans-serif;
+  padding: 7px 10px; border-radius: 999px; border: 2px solid #fff; white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, .35); transform: translate(-50%, -50%);
+}
+.leaflet-popup-content-wrapper, .leaflet-popup-tip { background: var(--surface); color: var(--text); }
+.leaflet-container a { color: var(--accent); }
+.map-pop { font-size: 14px; min-width: 220px; max-width: 280px; }
+.map-pop h3 { margin: 0 0 2px; font-size: 16px; }
+.map-pop .muted { color: var(--muted); margin: 0; font-size: 13px; }
+.map-pop ul { margin: 8px 0; padding-left: 18px; }
+.map-pop li { margin-bottom: 4px; }
+.map-pop .btn { margin-top: 6px; }
+
 /* ---------- Footer ---------- */
 .footer {
   display: grid; grid-template-columns: 1fr 1fr; gap: 24px;
@@ -224,4 +243,5 @@ input[type="date"] {
   .btn { padding: 8px 10px; font-size: 13px; }
   .btn.icon { padding: 8px 9px; }
   .footer { grid-template-columns: 1fr; }
+  #mapbox { height: 62vh; min-height: 360px; }
 }

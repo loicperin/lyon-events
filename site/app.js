@@ -134,7 +134,7 @@
     state.pick = p.get("jour") || "";
     state.venue = p.get("lieu") || "";
     state.onlyNew = p.get("new") === "1";
-    state.view = p.get("vue") === "lieux" ? "venues" : "agenda";
+    state.view = p.get("vue") === "lieux" ? "venues" : p.get("vue") === "carte" ? "map" : "agenda";
   }
   function writeHash() {
     const p = new URLSearchParams();
@@ -145,6 +145,7 @@
     if (state.venue) p.set("lieu", state.venue);
     if (state.onlyNew) p.set("new", "1");
     if (state.view === "venues") p.set("vue", "lieux");
+    else if (state.view === "map") p.set("vue", "carte");
     const h = p.toString();
     history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
   }
@@ -301,6 +302,66 @@
     }).join("")}</div>`;
   }
 
+  // ------------------------------------------------------------ carte
+  let map = null, pins = null;
+  const shortDay = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  function mapPopup(g) {
+    const rows = g.evs.slice(0, 5).map((e) => {
+      const t = safeUrl(e.ticketUrl);
+      const name = t ? `<a href="${esc(t)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title);
+      return `<li>${name}<br><span class="muted">${esc(shortDay(e.date))}${e.time ? " · " + esc(e.time.replace(":", "h")) : ""}</span></li>`;
+    }).join("");
+    const rest = g.evs.length - 5;
+    const more = rest > 0 ? `<p class="muted">+ ${rest} autre${rest > 1 ? "s" : ""}</p>` : "";
+    return `<div class="map-pop"><h3>${esc(g.venue)}</h3><p class="muted">${esc(g.address || g.city)}</p><ul>${rows}</ul>${more}<button class="btn primary" data-go>Voir tout dans l'agenda</button></div>`;
+  }
+  function renderMap() {
+    if (typeof L === "undefined") {
+      $("#count").textContent = "La carte se charge depuis internet : vérifie ta connexion puis recharge la page.";
+      return;
+    }
+    if (!map) {
+      map = L.map("mapbox").setView([45.7578, 4.832], 12);
+      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
+        maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+      }).addTo(map);
+      pins = L.layerGroup().addTo(map);
+    }
+    // Un repère par lieu : les événements à venir (mêmes filtres que l'agenda) sont regroupés par coordonnées.
+    const groups = new Map();
+    for (const e of DATA.events) {
+      if (e.lat == null || e.lng == null || !baseFilter(e)) continue;
+      const k = e.lat.toFixed(4) + "," + e.lng.toFixed(4);
+      if (!groups.has(k)) groups.set(k, { lat: e.lat, lng: e.lng, venue: e.venue, address: e.address || "", city: e.city || "", key: e.venueId || e.venue, evs: [] });
+      groups.get(k).evs.push(e);
+    }
+    pins.clearLayers();
+    let total = 0;
+    const points = [];
+    for (const g of groups.values()) {
+      g.evs.sort((a, b) => (a.start || "").localeCompare(b.start || ""));
+      total += g.evs.length;
+      points.push([g.lat, g.lng]);
+      const m = L.marker([g.lat, g.lng], {
+        icon: L.divIcon({ className: "", html: `<span class="pin">${g.evs.length}</span>`, iconSize: null }),
+        title: g.venue,
+      });
+      m.bindPopup(mapPopup(g), { maxWidth: 300 });
+      m.on("popupopen", (ev) => {
+        ev.popup.getElement().querySelector("[data-go]")?.addEventListener("click", () => {
+          state.venue = g.key; state.view = "agenda"; state.limit = PAGE; render();
+          window.scrollTo({ top: 0, behavior: "smooth" });
+        }, { once: true });
+      });
+      pins.addLayer(m);
+    }
+    $("#count").textContent = groups.size
+      ? `${total} événement${total > 1 ? "s" : ""} dans ${groups.size} lieu${groups.size > 1 ? "x" : ""}`
+      : "Aucun événement à placer sur la carte avec ces filtres";
+    map.invalidateSize();
+    if (points.length) map.fitBounds(points, { padding: [40, 40], maxZoom: 14 });
+  }
+
   function render() {
     prepareQuery();
     renderCats(); renderDates(); renderVenueSelect();
@@ -308,9 +369,10 @@
     $("#onlyNew").checked = state.onlyNew;
     document.querySelectorAll(".tab").forEach((t) => { const on = t.dataset.view === state.view; t.classList.toggle("active", on); t.setAttribute("aria-selected", on); });
     $("#agenda").hidden = state.view !== "agenda";
-    $("#cats").hidden = $(".filters-row").hidden = state.view !== "agenda";
+    $("#cats").hidden = $(".filters-row").hidden = state.view === "venues";
     $("#venues").hidden = state.view !== "venues";
-    state.view === "agenda" ? renderAgenda() : renderVenues();
+    $("#map").hidden = state.view !== "map";
+    state.view === "agenda" ? renderAgenda() : state.view === "venues" ? renderVenues() : renderMap();
     writeHash();
   }
 

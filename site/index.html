@@ -10,6 +10,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -36,6 +37,7 @@
         <div class="tabs" role="tablist">
           <button role="tab" class="tab active" data-view="agenda" aria-selected="true">Agenda</button>
           <button role="tab" class="tab" data-view="venues" aria-selected="false">Lieux</button>
+          <button role="tab" class="tab" data-view="map" aria-selected="false">Carte</button>
         </div>
       </div>
       <div class="chips" id="cats" aria-label="Catégories"></div>
@@ -53,6 +55,7 @@
     <p class="result-count" id="count"></p>
     <section id="agenda"></section>
     <section id="venues" hidden></section>
+    <section id="map" hidden><div id="mapbox" role="region" aria-label="Carte des événements"></div></section>
   </main>
 
   <footer class="wrap footer">
@@ -74,6 +77,7 @@
     <p class="fine">Les horaires et prix viennent des billetteries et peuvent changer. Vérifie toujours sur la page de vente avant d'acheter.</p>
   </footer>
 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>
