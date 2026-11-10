@@ -185,6 +185,14 @@
   }
 
   function renderDates() {
+    // Le champ date n'est créé qu'une fois : le recréer pendant la saisie fait perdre le focus.
+    const pick = $("#pick");
+    if (pick) {
+      $("#dates").querySelectorAll("[data-date]").forEach((b) => b.classList.toggle("active", state.date === b.dataset.date));
+      pick.classList.toggle("active", state.date === "pick");
+      if (document.activeElement !== pick && pick.value !== state.pick) pick.value = state.pick;
+      return;
+    }
     $("#dates").innerHTML = DATE_FILTERS.map((f) =>
       f.id === "pick"
         ? `<input type="date" id="pick" min="${TODAY}" value="${esc(state.pick)}" aria-label="Choisir une date" class="${state.date === "pick" ? "active" : ""}">`
@@ -400,6 +408,8 @@
   $("#venue").addEventListener("change", (ev) => { state.venue = ev.target.value; state.limit = PAGE; state.view = "agenda"; render(); });
   $("#onlyNew").addEventListener("change", (ev) => { state.onlyNew = ev.target.checked; state.limit = PAGE; render(); });
   document.addEventListener("change", (ev) => {
+    // Chrome valide la date dès le premier chiffre de l'année (0002-…) : on attend l'année complète.
+    if (ev.target.id === "pick" && ev.target.value && ev.target.value < "1000") return;
     if (ev.target.id === "pick") { state.pick = ev.target.value; state.date = ev.target.value ? "pick" : "all"; state.limit = PAGE; render(); }
   });
   document.addEventListener("click", (ev) => {
