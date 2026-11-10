@@ -1,9 +1,9 @@
 {
- "generatedAt": "2026-11-09T19:46:50+01:00",
+ "generatedAt": "2026-11-10T06:24:32+01:00",
  "sources": {
   "Ticketmaster": {
    "ok": true,
-   "count": 2224
+   "count": 2215
   },
   "Calendrier Ligue 1": {
    "ok": true,
@@ -20,7 +20,7 @@
   },
   "OpenAgenda (public)": {
    "ok": true,
-   "count": 384
+   "count": 381
   },
   "OpenAgenda (clé)": {
    "ok": false,
@@ -29,7 +29,7 @@
   },
   "Songkick et sites des salles": {
    "ok": true,
-   "count": 379
+   "count": 378
   },
   "Ajouts manuels": {
    "ok": true,
@@ -251,178 +251,6 @@
   }
  ],
  "events": [
-  {
-   "title": "Ffc 2026 - Competition Qdf 1 : Plus Grand Que Soi",
-   "category": "autre",
-   "genre": "Cinéma",
-   "competition": "",
-   "start": "2026-11-09T18:30:00+01:00",
-   "end": "2026-11-09T20:00:00+01:00",
-   "date": "2026-11-09",
-   "time": "18:30",
-   "venueId": null,
-   "venue": "Le Zola",
-   "city": "Villeurbanne",
-   "address": "117, cours Emile-Zola, Villeurbanne",
-   "lat": 45.771018,
-   "lng": 4.875183,
-   "ticketUrl": "https://openagenda.com/scare/events/ffc-2026-competition-qdf-1-plus-grand-que-soi",
-   "vendor": "OpenAgenda",
-   "image": "https://img.openagenda.com/main/9634c8f77a5a45bfae16a5a9a5b4ccae.base.image.jpg",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "Festival du film court",
-   "source": "OpenAgenda",
-   "id": "ed84b2ad22bf",
-   "firstSeen": "2026-11-09"
-  },
-  {
-   "title": "Amistat",
-   "category": "concert",
-   "genre": "Hip-Hop/Rap",
-   "competition": "",
-   "start": "2026-11-09T20:00:00+01:00",
-   "end": null,
-   "date": "2026-11-09",
-   "time": "20:00",
-   "venueId": "transbordeur",
-   "venue": "Le Transbordeur",
-   "city": "Villeurbanne",
-   "address": "3 Boulevard de Stalingrad, 69100 Villeurbanne",
-   "lat": 45.783,
-   "lng": 4.8606,
-   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/amistat-billet/idmanif/659741/idtier/18864121",
-   "vendor": "Ticketmaster",
-   "image": "https://s1.ticketm.net/dam/c/80b/f3cd8d24-c3ae-4fa0-b4bc-1ba99f9b380b_106091_TABLET_LANDSCAPE_16_9.jpg",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "Amistat at TRANSBORDEUR at 2026-11-09T20:00:00+0100",
-   "source": "Ticketmaster",
-   "id": "7b1eb9bc6d98",
-   "altTickets": [
-    {
-     "url": "http://www.songkick.com/concerts/43200860-amistat-at-transbordeur?utm_medium=organic&utm_source=microformat",
-     "vendor": "Songkick"
-    },
-    {
-     "url": "https://shotgun.live/events/amistat-le-bazar-lyon",
-     "vendor": "Shotgun"
-    }
-   ],
-   "firstSeen": ""
-  },
-  {
-   "title": "LITTLE BIG | Lyon 09.11",
-   "category": "autre",
-   "genre": "",
-   "competition": "",
-   "start": "2026-11-09T20:00:00+01:00",
-   "end": "2026-11-09T22:30:00+01:00",
-   "date": "2026-11-09",
-   "time": "20:00",
-   "venueId": null,
-   "venue": "La Rayonne",
-   "city": "Villeurbanne",
-   "address": "7 Rue Henri Legay, 69100 Villeurbanne, France",
-   "lat": 45.756734,
-   "lng": 4.917001,
-   "ticketUrl": "https://shotgun.live/events/little-big-lyon-09-11",
-   "vendor": "Shotgun",
-   "image": "https://img.openagenda.com/main/d31c1fcda3c34de894efdbdf2a367ac6.base.image.jpg",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "Après avoir conquis l’Amérique du Nord, Little Big revient en Europe avec son European TOUR 2026, une tournée de 24 dates à travers 13 pays. Le collectif rave-pop basé à Los Angeles présentera à La…",
-   "source": "OpenAgenda",
-   "id": "7e2ca57d269e",
-   "firstSeen": "2026-11-09"
-  },
-  {
-   "title": "Little BIG",
-   "category": "concert",
-   "genre": "",
-   "competition": "",
-   "start": "2026-11-09T20:00:00+01:00",
-   "end": "2026-11-09T00:00:00+01:00",
-   "date": "2026-11-09",
-   "time": "20:00",
-   "venueId": null,
-   "venue": "La Rayonne",
-   "city": "Villeurbanne",
-   "address": "24 rue Alfred de Musset",
-   "lat": 45.75764,
-   "lng": 4.91903,
-   "ticketUrl": "http://www.songkick.com/concerts/43214426-little-big-at-la-rayonne?utm_medium=organic&utm_source=microformat",
-   "vendor": "Songkick",
-   "image": "https://images.sk-static.com/images/media/profile_images/artists/4472958/huge_avatar",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "Little BIG at La Rayonne at 2026-11-09T20:00:00+0100",
-   "source": "Songkick",
-   "id": "3fa9ce71a1da",
-   "firstSeen": "2026-11-09"
-  },
-  {
-   "title": "Un Soir avec Pierre Arditi",
-   "category": "spectacle",
-   "genre": "Theatre",
-   "competition": "",
-   "start": "2026-11-09T20:30:00+01:00",
-   "end": null,
-   "date": "2026-11-09",
-   "time": "20:30",
-   "venueId": "radiant-bellevue",
-   "venue": "Radiant-Bellevue",
-   "city": "Caluire-et-Cuire",
-   "address": "1 Rue Jean Moulin, 69300 Caluire-et-Cuire",
-   "lat": 45.793,
-   "lng": 4.844,
-   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/un-soir-avec-pierre-arditi-billet/idmanif/654317/idtier/18864121",
-   "vendor": "Ticketmaster",
-   "image": "https://s1.ticketm.net/dam/c/07d/fda8c807-42eb-4b81-9f16-f3a8367e107d_106371_TABLET_LANDSCAPE_16_9.jpg",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "",
-   "source": "Ticketmaster",
-   "id": "ed257157e65c",
-   "firstSeen": ""
-  },
-  {
-   "title": "Gurriers",
-   "category": "concert",
-   "genre": "",
-   "competition": "",
-   "start": "2026-11-10T00:00:00+01:00",
-   "end": "2026-11-10T00:00:00+01:00",
-   "date": "2026-11-10",
-   "time": null,
-   "venueId": null,
-   "venue": "L'Épicerie Moderne",
-   "city": "Lyon",
-   "address": "Place René Lescot",
-   "lat": 45.67395,
-   "lng": 4.85874,
-   "ticketUrl": "http://www.songkick.com/concerts/43221802-gurriers-at-lepicerie-moderne?utm_medium=organic&utm_source=microformat",
-   "vendor": "Songkick",
-   "image": "https://images.sk-static.com/images/media/profile_images/artists/327279/huge_avatar",
-   "priceMin": null,
-   "priceMax": null,
-   "currency": "EUR",
-   "status": "",
-   "description": "Gurriers at L'Épicerie Moderne at 2026-11-10",
-   "source": "Songkick",
-   "id": "ba33b566fe18",
-   "firstSeen": "2026-11-09"
-  },
   {
    "title": "Les débuts de la photographie",
    "category": "autre",
@@ -18856,6 +18684,33 @@
    "firstSeen": ""
   },
   {
+   "title": "Tombola de Noël de la classe en 7",
+   "category": "autre",
+   "genre": "",
+   "competition": "",
+   "start": "2026-12-23T17:00:00+01:00",
+   "end": "2026-12-23T20:00:00+01:00",
+   "date": "2026-12-23",
+   "time": "17:00",
+   "venueId": null,
+   "venue": "Place du Marché",
+   "city": "Bessenay",
+   "address": "Place du Marché, 69690 Bessenay",
+   "lat": 45.776039,
+   "lng": 4.553527,
+   "ticketUrl": "https://www.helloasso.com/associations/classe-en-7-de-bessenay/evenements/vente-de-saumon-fume-et-plateaux-de-fromage",
+   "vendor": "HelloAsso",
+   "image": "https://img.openagenda.com/main/adef63fccb794439a20d312b84f97299.base.image.jpg",
+   "priceMin": null,
+   "priceMax": null,
+   "currency": "EUR",
+   "status": "",
+   "description": "Profitez de plateaux de fromages et de saumon fumé, parfaits pour les fêtes de fin d'année, à gagner ou à commander dès maintenant !",
+   "source": "OpenAgenda",
+   "id": "dcda6fe547bb",
+   "firstSeen": "2026-11-10"
+  },
+  {
    "title": "Le Porteur d'Histoire",
    "category": "spectacle",
    "genre": "Humour",
@@ -36425,31 +36280,37 @@
    "firstSeen": "2026-11-09"
   },
   {
-   "title": "Load Tha Nine + Recount + Shall Remain",
+   "title": "Load Tha Nine",
    "category": "concert",
    "genre": "",
    "competition": "",
    "start": "2027-03-07T19:30:00+01:00",
-   "end": "2027-03-07T23:59:00+01:00",
+   "end": "2027-03-07T00:00:00+01:00",
    "date": "2027-03-07",
    "time": "19:30",
    "venueId": null,
-   "venue": "Rock n'Eat Live",
+   "venue": "Rock N Eat Live",
    "city": "Lyon",
    "address": "32 Quai Arloing, 69009 Lyon, France",
-   "lat": 45.771037,
-   "lng": 4.811632,
-   "ticketUrl": "https://shotgun.live/events/load-tha-nine-recount-shall-remain",
-   "vendor": "Shotgun",
-   "image": "https://img.openagenda.com/main/91606d6b5a6f449997b527bcb4530070.base.image.jpg",
+   "lat": 45.77104,
+   "lng": 4.81163,
+   "ticketUrl": "http://www.songkick.com/concerts/43425265-load-tha-nine-at-rock-n-eat-live?utm_medium=organic&utm_source=microformat",
+   "vendor": "Songkick",
+   "image": "https://images.sk-static.com/images/media/profile_images/artists/10413586/huge_avatar",
    "priceMin": null,
    "priceMax": null,
    "currency": "EUR",
    "status": "",
-   "description": "🔥 ROCK N’ EAT – LYON 🔥 LOAD THA NINE • RECOUNT • SHALL REMAIN Trois groupes réunis pour une soirée 100 % HARDCORE BEATDOWN. 📍 Rock N’ Eat – Lyon 📅 7 mars 2027 🕗 Ouverture / début : 20h00 🎟️…",
-   "source": "OpenAgenda",
-   "id": "1d0ca3c1131b",
-   "firstSeen": "2026-11-09"
+   "description": "Load Tha Nine, Recount, and SHALL REMAIN at Rock N Eat Live at 2027-03-07T19:30:00+0100",
+   "source": "Songkick",
+   "id": "0aaab3e9125a",
+   "altTickets": [
+    {
+     "url": "https://shotgun.live/events/load-tha-nine-recount-shall-remain",
+     "vendor": "Shotgun"
+    }
+   ],
+   "firstSeen": "2026-11-10"
   },
   {
    "title": "Grupo Corpo",
@@ -36500,9 +36361,15 @@
    "priceMax": null,
    "currency": "EUR",
    "status": "",
-   "description": "",
+   "description": "Marc Lavoine at RADIANT-BELLEVUE at 2027-03-08T20:00:00+0100",
    "source": "Ticketmaster",
    "id": "465a2116287c",
+   "altTickets": [
+    {
+     "url": "http://www.songkick.com/concerts/43399064-marc-lavoine-at-radiantbellevue?utm_medium=organic&utm_source=microformat",
+     "vendor": "Songkick"
+    }
+   ],
    "firstSeen": ""
   },
   {
@@ -48021,6 +47888,33 @@
    "source": "Ticketmaster",
    "id": "fab2d0b911b0",
    "firstSeen": ""
+  },
+  {
+   "title": "Herve Vilard",
+   "category": "concert",
+   "genre": "Chanson Francaise",
+   "competition": "",
+   "start": "2027-11-09T20:00:00+01:00",
+   "end": null,
+   "date": "2027-11-09",
+   "time": "20:00",
+   "venueId": "bourse-du-travail",
+   "venue": "Bourse du Travail",
+   "city": "Lyon 3e",
+   "address": "205 Place Guichard, 69003 Lyon",
+   "lat": 45.7591,
+   "lng": 4.8458,
+   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/herve-vilard-billet/idmanif/663791/idtier/18864121",
+   "vendor": "Ticketmaster",
+   "image": "https://s1.ticketm.net/dam/a/727/8cf0b88e-d318-403f-8447-8150a4b93727_TABLET_LANDSCAPE_16_9.jpg",
+   "priceMin": null,
+   "priceMax": null,
+   "currency": "EUR",
+   "status": "",
+   "description": "",
+   "source": "Ticketmaster",
+   "id": "aa2abaa0572b",
+   "firstSeen": "2026-11-10"
   }
  ]
 }
