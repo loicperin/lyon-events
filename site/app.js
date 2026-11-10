@@ -611,7 +611,14 @@
       DATA = { events: d.events || [], venues: d.venues || [], sources: d.sources || {} };
       venueById = Object.fromEntries(DATA.venues.map((v) => [v.id, v]));
       const g = d.generatedAt ? new Date(d.generatedAt) : null;
-      $("#updated").textContent = g ? `Mis à jour le ${g.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" })} à ${g.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })}` : "";
+      $("#updated").textContent = g ? `Mis à jour le ${g.toLocaleDateString("fr-FR", { day: "numeric", month: "long", timeZone: "Europe/Paris" })} à ${g.toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit", timeZone: "Europe/Paris" })}.` : "";
+      // Bannière : nombre de dates à venir, et celles de ce soir (à partir de 17 h).
+      const upcoming = DATA.events.filter((e) => e.date >= TODAY);
+      const today = upcoming.filter((e) => e.date === TODAY);
+      const tonight = today.filter((e) => e.time && e.time >= "17:00").length;
+      $("#heroNow").textContent = upcoming.length
+        ? `${upcoming.length.toLocaleString("fr-FR")} dates à venir${tonight ? `, dont ${tonight} ce soir` : today.length ? `, dont ${today.length} aujourd'hui` : ""}.`
+        : "";
       $("#sources").innerHTML = Object.entries(DATA.sources).map(([n, s]) =>
         `<li class="${s.ok ? "ok" : "ko"}">${esc(n)} : ${s.ok ? `${s.count} événement${s.count > 1 ? "s" : ""}` : "non utilisée"}</li>`).join("");
       render();

@@ -45,22 +45,20 @@ a { color: inherit; }
 .wrap { max-width: 1180px; margin: 0 auto; padding: 0 16px; }
 
 /* ---------- Hero ---------- */
-.hero {
-  background: radial-gradient(1200px 400px at 85% -50%, rgba(255, 77, 94, .45), transparent 60%),
-              linear-gradient(135deg, var(--hero-1), var(--hero-2));
-  color: #fff;
-  padding: 28px 0 22px;
+/* Bannière « Lumières » : Fourvière éclairée par les projecteurs, sombre dans les deux thèmes */
+.hero { position: relative; overflow: hidden; background: #0A0E2E; color: #F5F3FF; }
+.hero-scene { position: absolute; inset: 0; width: 100%; height: 100%; }
+.hero-txt {
+  position: relative; min-height: 320px; box-sizing: border-box; padding-top: 38px; padding-bottom: 26px;
+  display: flex; flex-direction: column; justify-content: space-between; gap: 24px;
 }
-.hero .wrap { display: flex; align-items: flex-end; justify-content: space-between; gap: 16px; flex-wrap: wrap; }
-.brand { display: flex; align-items: center; gap: 14px; }
-.logo {
-  width: 48px; height: 48px; border-radius: 14px; background: var(--accent);
-  display: grid; place-items: center; font-weight: 800; font-size: 26px;
-  box-shadow: 0 6px 20px rgba(255, 77, 94, .45);
+.hero h1 {
+  margin: 0; max-width: 8ch; font-family: Syne, Inter, sans-serif; font-weight: 800;
+  font-size: clamp(42px, 6.4vw, 84px); line-height: .95; letter-spacing: -.03em;
+  text-shadow: 0 0 34px rgba(255, 61, 168, .35);
 }
-h1 { margin: 0; font-size: clamp(24px, 4vw, 34px); letter-spacing: -.02em; font-weight: 800; }
-.tagline { margin: 2px 0 0; color: rgba(255, 255, 255, .78); font-size: 15px; }
-.updated { margin: 0; font-size: 13px; color: rgba(255, 255, 255, .7); }
+.tagline { margin: 16px 0 0; max-width: 32ch; font-size: 18px; line-height: 1.45; color: #D7D3F0; }
+.hero-now { margin: 0; font-size: 14px; color: #B9B4DA; }
 
 /* ---------- Toolbar ---------- */
 .toolbar {
@@ -365,8 +363,11 @@ input[type="date"] {
 .fine { grid-column: 1 / -1; font-size: 12px; margin: 0; }
 
 @media (max-width: 640px) {
-  .hero { padding: 20px 0 16px; }
-  .tagline { font-size: 13px; }
+  .hero-scene { top: auto; bottom: 0; left: auto; right: -95px; width: 560px; height: 200px; } /* basilique en bas à droite, sous le titre */
+  .hero-txt { min-height: 250px; padding-top: 24px; padding-bottom: 18px; gap: 16px; }
+  .hero h1 { font-size: clamp(34px, 10.5vw, 44px); }
+  .tagline { margin-top: 10px; max-width: 20ch; font-size: 15px; }
+  .hero-now { font-size: 13px; }
   .tab { padding: 8px 10px; }
   .selects { width: 100%; }
   .selects select { flex: 1; min-width: 0; max-width: none; }

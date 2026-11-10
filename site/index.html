@@ -9,22 +9,56 @@
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'><rect width='64' height='64' rx='16' fill='%23ff4d5e'/><text x='32' y='44' font-size='34' text-anchor='middle' font-family='Arial' font-weight='700' fill='white'>L</text></svg>">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Syne:wght@800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
   <header class="hero">
-    <div class="wrap">
-      <div class="brand">
-        <span class="logo">L</span>
-        <div>
-          <h1>Lyon Events</h1>
-          <p class="tagline">Matchs, concerts et spectacles à Lyon, avec les billetteries officielles</p>
-        </div>
+    <svg class="hero-scene" viewBox="0 0 1280 360" preserveAspectRatio="xMaxYMax slice" aria-hidden="true">
+      <defs>
+        <linearGradient id="heroSky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#0A0E2E"/><stop offset="1" stop-color="#2A1658"/></linearGradient>
+        <linearGradient id="heroM" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FF3DA8" stop-opacity=".75"/><stop offset="1" stop-color="#FF3DA8" stop-opacity="0"/></linearGradient>
+        <linearGradient id="heroC" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#39E1FF" stop-opacity=".7"/><stop offset="1" stop-color="#39E1FF" stop-opacity="0"/></linearGradient>
+        <linearGradient id="heroG" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="#FFC845" stop-opacity=".7"/><stop offset="1" stop-color="#FFC845" stop-opacity="0"/></linearGradient>
+        <linearGradient id="heroF" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#FF3DA8"/><stop offset=".5" stop-color="#7B5CFF"/><stop offset="1" stop-color="#39E1FF"/></linearGradient>
+        <filter id="heroBlur"><feGaussianBlur stdDeviation="10"/></filter>
+      </defs>
+      <rect width="1280" height="360" fill="url(#heroSky)"/>
+      <!-- Projecteurs de la Fête des Lumières -->
+      <g filter="url(#heroBlur)" style="mix-blend-mode:screen">
+        <polygon points="760,360 800,360 700,0 560,0" fill="url(#heroM)"/>
+        <polygon points="1010,360 1050,360 1180,0 1020,0" fill="url(#heroC)"/>
+        <polygon points="880,360 910,360 960,0 860,0" fill="url(#heroG)"/>
+      </g>
+      <!-- Colline de Fourvière, la basilique et la tour métallique -->
+      <path d="M0 312 C 220 262, 470 214, 720 206 C 930 200, 1090 224, 1280 262 L1280 360 L0 360 Z" fill="#060823"/>
+      <g fill="#060823">
+        <rect x="826" y="150" width="148" height="58"/>
+        <rect x="818" y="116" width="22" height="92"/><rect x="960" y="116" width="22" height="92"/>
+        <rect x="866" y="132" width="16" height="22"/><rect x="918" y="132" width="16" height="22"/>
+        <polygon points="1076,226 1094,226 1088,104 1082,104"/><rect x="1084" y="86" width="2" height="20"/>
+      </g>
+      <g opacity=".85">
+        <rect x="826" y="150" width="148" height="58" fill="url(#heroF)" opacity=".55"/>
+        <rect x="818" y="116" width="22" height="92" fill="#FF3DA8" opacity=".5"/><rect x="960" y="116" width="22" height="92" fill="#39E1FF" opacity=".5"/>
+        <g fill="#060823" opacity=".7">
+          <rect x="846" y="168" width="10" height="22" rx="5"/><rect x="870" y="168" width="10" height="22" rx="5"/><rect x="894" y="168" width="10" height="22" rx="5"/>
+          <rect x="918" y="168" width="10" height="22" rx="5"/><rect x="942" y="168" width="10" height="22" rx="5"/>
+        </g>
+      </g>
+      <g fill="#FFD98A">
+        <circle cx="140" cy="318" r="1.6"/><circle cx="260" cy="300" r="1.6"/><circle cx="330" cy="286" r="1.6"/><circle cx="420" cy="270" r="1.6"/>
+        <circle cx="520" cy="252" r="1.6"/><circle cx="600" cy="236" r="1.6"/><circle cx="660" cy="224" r="1.6"/><circle cx="1150" cy="250" r="1.6"/><circle cx="1220" cy="258" r="1.6"/>
+      </g>
+    </svg>
+    <div class="wrap hero-txt">
+      <div>
+        <h1>Lyon Events</h1>
+        <p class="tagline">Matchs, concerts et spectacles à Lyon, avec les billetteries officielles.</p>
       </div>
-      <p class="updated" id="updated">Chargement…</p>
+      <p class="hero-now"><span id="heroNow"></span> <span id="updated">Chargement…</span></p>
     </div>
   </header>
 

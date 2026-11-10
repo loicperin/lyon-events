@@ -955,6 +955,20 @@ def dedupe(events):
     return list(out.values())
 
 
+def share_images(events) -> int:
+    """Une date sans visuel reprend celui d'une autre date du même spectacle (même titre, toutes sources)."""
+    by_title: dict[str, str] = {}
+    for e in events:
+        if e.get("image"):
+            by_title.setdefault(norm(e["title"]), e["image"])
+    n = 0
+    for e in events:
+        if not e.get("image") and by_title.get(norm(e["title"])):
+            e["image"] = by_title[norm(e["title"])]
+            n += 1
+    return n
+
+
 def main():
     previous = {}
     if OUT.exists():
@@ -976,6 +990,7 @@ def main():
             log(f"  ignorée : {e}")
 
     events = dedupe(all_events)
+    log(f"→ Visuels partagés entre dates d'un même spectacle : {share_images(events)}")
 
     # Instagram en dernier : chaque annonce est comparée à tout ce que les autres sources ont trouvé.
     log("→ Instagram")
