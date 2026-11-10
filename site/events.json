@@ -1,9 +1,9 @@
 {
- "generatedAt": "2026-11-10T16:29:58+01:00",
+ "generatedAt": "2026-11-10T19:54:38+01:00",
  "sources": {
   "Ticketmaster": {
    "ok": true,
-   "count": 2223
+   "count": 2224
   },
   "Calendrier Ligue 1": {
    "ok": true,
@@ -20,7 +20,7 @@
   },
   "OpenAgenda (public)": {
    "ok": true,
-   "count": 389
+   "count": 378
   },
   "OpenAgenda (clé)": {
    "ok": false,
@@ -308,12 +308,12 @@
    "firstSeen": "2026-11-09"
   },
   {
-   "title": "PLAVACE 5 ANS w. 8RUKI - ZED - TH",
+   "title": "Plavace 5 ans w. 8RUKI - ZED - TH",
    "category": "concert",
-   "genre": "Hip-Hop/Rap",
+   "genre": "",
    "competition": "",
    "start": "2026-11-10T18:30:00+01:00",
-   "end": null,
+   "end": "2026-11-11T05:00:00+01:00",
    "date": "2026-11-10",
    "time": "18:30",
    "venueId": "transbordeur",
@@ -322,8 +322,8 @@
    "address": "3 Boulevard de Stalingrad, 69100 Villeurbanne",
    "lat": 45.783,
    "lng": 4.8606,
-   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/plavace-5-ans-w-8ruki-zed-th-billet/idmanif/673246/idseance/4426028",
-   "vendor": "Ticketmaster",
+   "ticketUrl": "https://shotgun.live/events/plavace-5-ans-w-8-ruki-zed-th",
+   "vendor": "Shotgun",
    "image": "https://img.openagenda.com/main/6e3fc2b4ebbf4f0eac836b2cb35463dd.base.image.jpg",
    "priceMin": 25.99,
    "priceMax": 35.49,
@@ -331,14 +331,8 @@
    "currency": "EUR",
    "status": "",
    "description": "PLAVACE 5 ANS w/ 8ruki, Zed et TH Plavace clôture l'enchainement de 3 dates anniversaire avec un co-plateau bien trap music au Transbo ! Après les lives, on prolongera la fête avec un after au Club…",
-   "source": "Ticketmaster",
+   "source": "OpenAgenda",
    "id": "2fd4ece4c0a3",
-   "altTickets": [
-    {
-     "url": "https://shotgun.live/events/plavace-5-ans-w-8-ruki-zed-th",
-     "vendor": "Shotgun"
-    }
-   ],
    "firstSeen": ""
   },
   {
@@ -5270,34 +5264,6 @@
    "source": "Ticketmaster",
    "id": "aab7397912fc",
    "firstSeen": ""
-  },
-  {
-   "title": "THE LOCOS (ex SKA-P) + LA PIGÑATA",
-   "category": "autre",
-   "genre": "",
-   "competition": "",
-   "start": "2026-11-18T20:00:00+01:00",
-   "end": "2026-11-18T22:30:00+01:00",
-   "date": "2026-11-18",
-   "time": "20:00",
-   "venueId": null,
-   "venue": "La Rayonne",
-   "city": "Villeurbanne",
-   "address": "7 Rue Henri Legay, 69100 Villeurbanne, France",
-   "lat": 45.756734,
-   "lng": 4.917001,
-   "ticketUrl": "https://shotgun.live/events/the-locos-la-pignata-la-rayonne",
-   "vendor": "Shotgun",
-   "image": "https://img.openagenda.com/main/b27ef4eafba247ce8268e8ff0f99abff.base.image.jpg",
-   "priceMin": 25.99,
-   "priceMax": 27.99,
-   "priceNote": "De 25.99 € à 27.99 €",
-   "currency": "EUR",
-   "status": "",
-   "description": "THE LOCOS ES – Ska-Punk En 2025, The Locos célèbre 20 ans de carrière et s’impose plus que jamais comme une référence incontournable de la scène ska-punk internationale. Fondé en 2005 par Pipi,…",
-   "source": "OpenAgenda",
-   "id": "42b71726c4d4",
-   "firstSeen": "2026-11-09"
   },
   {
    "title": "The Locos",
@@ -11847,20 +11813,14 @@
    "ticketUrl": "http://www.songkick.com/concerts/43414797-bardix-le-gaulois-at-la-rayonne?utm_medium=organic&utm_source=microformat",
    "vendor": "Songkick",
    "image": "https://images.sk-static.com/images/media/profile_images/artists/10382144/huge_avatar",
-   "priceMin": 25.75,
+   "priceMin": null,
    "priceMax": null,
-   "priceNote": "À partir de 25.75 €",
+   "priceNote": "",
    "currency": "EUR",
    "status": "",
    "description": "Bardix le Gaulois at La Rayonne at 2026-12-02T20:00:00+0100",
    "source": "Songkick",
    "id": "98842264786e",
-   "altTickets": [
-    {
-     "url": "https://shotgun.live/events/bardix-le-gaulois-le-bazar-lyon",
-     "vendor": "Shotgun"
-    }
-   ],
    "firstSeen": "2026-11-09"
   },
   {
@@ -11889,34 +11849,6 @@
    "description": "Eric Serra at LDLC Arena at 2026-12-02T20:00:00+0100",
    "source": "Songkick",
    "id": "1e9761db5455",
-   "firstSeen": "2026-11-09"
-  },
-  {
-   "title": "La Jamalazz | Mer. 02.12",
-   "category": "concert",
-   "genre": "",
-   "competition": "",
-   "start": "2026-12-02T20:00:00+01:00",
-   "end": "2026-12-02T23:00:00+01:00",
-   "date": "2026-12-02",
-   "time": "20:00",
-   "venueId": null,
-   "venue": "Kraspek Myzik",
-   "city": "Lyon",
-   "address": "20 Mnt Saint-Sébastien, 69001 Lyon, France",
-   "lat": 45.771287,
-   "lng": 4.835777,
-   "ticketUrl": "https://shotgun.live/events/la-jamalazz-02-12",
-   "vendor": "Shotgun",
-   "image": "https://img.openagenda.com/main/9045a0354b7d42e490d28227be9642fb.base.image.jpg",
-   "priceMin": 0.0,
-   "priceMax": null,
-   "priceNote": "Gratuit",
-   "currency": "EUR",
-   "status": "",
-   "description": "LA JAMALAZZ 🔥 Viens profiter de la toute première édition de la nouvelle jam organisée par Lazzman au Kraspek Myzik ! Tu aimes la liberté ? Le groove ? Le jazz ? Les effets à foison ? 🥵 Tu vas te…",
-   "source": "OpenAgenda",
-   "id": "04ece2c48008",
    "firstSeen": "2026-11-09"
   },
   {
@@ -17406,6 +17338,34 @@
    "firstSeen": "2026-11-09"
   },
   {
+   "title": "Bukowski + Guest",
+   "category": "concert",
+   "genre": "",
+   "competition": "",
+   "start": "2026-12-17T19:30:00+01:00",
+   "end": "2026-12-17T23:30:00+01:00",
+   "date": "2026-12-17",
+   "time": "19:30",
+   "venueId": null,
+   "venue": "Rock n'Eat Live",
+   "city": "Lyon",
+   "address": "32 Quai Arloing, 69009 Lyon, France",
+   "lat": 45.771037,
+   "lng": 4.811632,
+   "ticketUrl": "https://shotgun.live/events/bukowski-guest",
+   "vendor": "Shotgun",
+   "image": "https://img.openagenda.com/main/a12d4b8304e44123b24d0fe4de318626.base.image.jpg",
+   "priceMin": 18.5,
+   "priceMax": null,
+   "priceNote": "À partir de 18.5 €",
+   "currency": "EUR",
+   "status": "",
+   "description": "BUKOWSKI Bukowski, c’est un rock puissant et viscéral, porté par une énergie brute qui prend toute sa dimension sur scène. Le groupe impose un univers intense, entre riffs percutants, atmosphères…",
+   "source": "OpenAgenda",
+   "id": "50c88af35e0f",
+   "firstSeen": "2026-11-10"
+  },
+  {
    "title": "FFF",
    "category": "concert",
    "genre": "Rock",
@@ -17698,32 +17658,32 @@
    "firstSeen": ""
   },
   {
-   "title": "Le Sou des Écoles ouvre les portes de son Marché de Noël",
+   "title": "Événement CPE de Bessenay",
    "category": "autre",
    "genre": "",
    "competition": "",
    "start": "2026-12-18T17:00:00+01:00",
-   "end": "2026-12-18T22:00:00+01:00",
+   "end": "2026-12-18T20:00:00+01:00",
    "date": "2026-12-18",
    "time": "17:00",
    "venueId": null,
-   "venue": "Parking de la Giraudiere",
-   "city": "Brussieu",
-   "address": "Route de Brussieu, La Giraudiere 69690",
-   "lat": 45.752261,
-   "lng": 4.54694,
-   "ticketUrl": "https://openagenda.com/agenda-de-la-commune-de-bessenay/events/le-sou-des-ecoles-ouvre-les-portes-de-son-marche-de-noel",
+   "venue": "Ecole primaire « Les Echaras »",
+   "city": "Bessenay",
+   "address": "15 rue de la mairie, 69690 Bessenay",
+   "lat": 45.777117,
+   "lng": 4.553812,
+   "ticketUrl": "https://openagenda.com/agenda-de-la-commune-de-bessenay/events/evenement-cpe-de-bessenay",
    "vendor": "OpenAgenda",
-   "image": "https://img.openagenda.com/main/75512b4728f6406abd639062160d0baf.base.image.jpg",
-   "priceMin": 0.0,
+   "image": "",
+   "priceMin": null,
    "priceMax": null,
-   "priceNote": "Gratuit",
+   "priceNote": "",
    "currency": "EUR",
    "status": "",
-   "description": "Petits et grands, laissez-vous emporter par l'ambiance féerique de cette soirée de Noël : illuminations scintillantes, idées cadeaux, savoir-faire locaux, gourmandises et surprises vous attendent....",
+   "description": "Box et livre de Noël, Vin chaud",
    "source": "OpenAgenda",
-   "id": "328cddd2253a",
-   "firstSeen": "2026-11-09"
+   "id": "772f095580f2",
+   "firstSeen": "2026-11-10"
   },
   {
    "title": "Bouquet de Contes",
@@ -17779,34 +17739,6 @@
    "description": "Un petit appareil électro-ménager est en panne ? Venez le réparer en étant aidé par des bénévoles.",
    "source": "OpenAgenda",
    "id": "7e4b45ceb7cb",
-   "firstSeen": "2026-11-09"
-  },
-  {
-   "title": "TOURNOI TENNIS BALLON en salle",
-   "category": "sport",
-   "genre": "",
-   "competition": "",
-   "start": "2026-12-18T18:00:00+01:00",
-   "end": "2026-12-18T23:59:00+01:00",
-   "date": "2026-12-18",
-   "time": "18:00",
-   "venueId": null,
-   "venue": "Complexe sportif Jean Guilloud",
-   "city": "Bessenay",
-   "address": "25 Route de Bibost, 69690 Bessenay",
-   "lat": 45.780873,
-   "lng": 4.548362,
-   "ticketUrl": "https://openagenda.com/agenda-de-la-commune-de-bessenay/events/tournoi-tennis-ballon",
-   "vendor": "OpenAgenda",
-   "image": "",
-   "priceMin": 15.0,
-   "priceMax": null,
-   "priceNote": "15 euros sur inscription en priorité",
-   "currency": "EUR",
-   "status": "",
-   "description": "Salle polyvalente",
-   "source": "OpenAgenda",
-   "id": "04b213432e65",
    "firstSeen": "2026-11-09"
   },
   {
@@ -25068,7 +25000,7 @@
    "address": "205 Place Guichard, 69003 Lyon",
    "lat": 45.7591,
    "lng": 4.8458,
-   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/paul-de-saint-sernin-billet/idmanif/646868/idtier/18864121",
+   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/paul-de-saint-sernin-billet/idmanif/646868/idseance/4250504",
    "vendor": "Ticketmaster",
    "image": "https://images.sk-static.com/images/media/profile_images/events/43458556/huge_avatar?series_id=3809031",
    "priceMin": null,
@@ -45330,7 +45262,7 @@
    "address": "1 RUE MARYSE BASTIE",
    "lat": 45.726868,
    "lng": 4.920782,
-   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/paul-de-saint-sernin-billet/idmanif/667168/idtier/18864121",
+   "ticketUrl": "https://www.ticketmaster.fr/fr/manifestation/paul-de-saint-sernin-billet/idmanif/667168/idseance/4381384",
    "vendor": "Ticketmaster",
    "image": "https://images.sk-static.com/images/media/profile_images/events/43458556/huge_avatar?series_id=3809031",
    "priceMin": null,
