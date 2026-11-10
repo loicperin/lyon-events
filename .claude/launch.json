@@ -2,6 +2,10 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "Lyon Events (en ligne)",
+      "url": "https://loicperin.github.io/lyon-events/"
+    },
+    {
       "name": "site",
       "runtimeExecutable": "python",
       "runtimeArgs": ["-m", "http.server", "8000", "--directory", "site"],
