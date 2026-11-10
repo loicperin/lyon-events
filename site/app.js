@@ -121,7 +121,7 @@
     { id: "pick", label: "Choisir une date", test: (d) => !state.pick || d === state.pick },
   ];
 
-  const state = { q: "", cat: "", date: "all", pick: "", venue: "", onlyNew: false, view: "agenda", limit: PAGE };
+  const state = { q: "", cat: "", date: "all", pick: "", venue: "", onlyNew: false, view: "agenda", limit: PAGE, open: "" };
   let DATA = { events: [], venues: [], sources: {} };
   let venueById = {};
 
@@ -135,6 +135,7 @@
     state.venue = p.get("lieu") || "";
     state.onlyNew = p.get("new") === "1";
     state.view = p.get("vue") === "lieux" ? "venues" : p.get("vue") === "carte" ? "map" : "agenda";
+    state.open = p.get("e") || "";
   }
   function writeHash() {
     const p = new URLSearchParams();
@@ -146,6 +147,7 @@
     if (state.onlyNew) p.set("new", "1");
     if (state.view === "venues") p.set("vue", "lieux");
     else if (state.view === "map") p.set("vue", "carte");
+    if (state.open) p.set("e", state.open);
     const h = p.toString();
     history.replaceState(null, "", h ? "#" + h : location.pathname + location.search);
   }
@@ -213,18 +215,36 @@
 
   const PIN = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 2a7 7 0 0 1 7 7c0 5.25-7 13-7 13S5 14.25 5 9a7 7 0 0 1 7-7Zm0 4.5a2.5 2.5 0 1 0 0 5 2.5 2.5 0 0 0 0-5Z"/></svg>`;
   const MAP = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5.5-6-2-6 2.25v15l6-2.25 6 2 6-2.25v-15L15 5.5Zm-1 12.6-4-1.33V5.9l4 1.33v10.87Z"/></svg>`;
+  const LINK = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10.6 13.4a1 1 0 0 1 0-1.4l3.5-3.5a1 1 0 1 1 1.4 1.4L12 13.4a1 1 0 0 1-1.4 0ZM8.5 20a4.5 4.5 0 0 1-3.2-7.7l2.1-2.1 1.4 1.4-2.1 2.1a2.5 2.5 0 0 0 3.5 3.5l2.1-2.1 1.4 1.4-2.1 2.1A4.5 4.5 0 0 1 8.5 20Zm7.1-6.2-1.4-1.4 2.1-2.1a2.5 2.5 0 0 0-3.5-3.5l-2.1 2.1-1.4-1.4 2.1-2.1a4.5 4.5 0 0 1 6.4 6.4l-2.2 2Z"/></svg>`;
   const CAL = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 2h2v2h6V2h2v2h3a1 1 0 0 1 1 1v15a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V5a1 1 0 0 1 1-1h3V2Zm12 8H5v9h14v-9Z"/></svg>`;
-  const TICKET = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6a1 1 0 0 1 1-1h16a1 1 0 0 1 1 1v3a3 3 0 0 0 0 6v3a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1v-3a3 3 0 0 0 0-6V6Zm11 1v2h2V7h-2Zm0 4v2h2v-2h-2Zm0 4v2h2v-2h-2Z"/></svg>`;
 
   // Agendas (pas des billetteries) : le bouton dit « Voir sur » plutôt que « Billets sur ».
   const INFO_SOURCES = new Set(["OpenAgenda", "Songkick", "Instagram"]);
   // Comptes Instagram qui ont annoncé l'événement (rapprochement fait par le robot quotidien).
   const seenOn = (e) => (e.seenOn || []).filter((s) => safeUrl(s.url));
 
+  // Fourchette de prix telle que la donnent les sources ; vide si aucune ne la connaît.
   function price(e) {
     if (e.priceMin == null) return "";
     const f = (n) => Number(n).toLocaleString("fr-FR", { style: "currency", currency: e.currency || "EUR", maximumFractionDigits: Number(n) % 1 ? 2 : 0 });
-    return e.priceMax && e.priceMax !== e.priceMin ? `De ${f(e.priceMin)} à ${f(e.priceMax)}` : `À partir de ${f(e.priceMin)}`;
+    if (!e.priceMin && !e.priceMax) return "Gratuit";
+    if (e.priceMax && e.priceMax !== e.priceMin) return `De ${f(e.priceMin)} à ${f(e.priceMax)}`;
+    return `À partir de ${f(e.priceMin)}`;
+  }
+  const ticketLabel = (e) => `${INFO_SOURCES.has(e.source) ? "Voir sur" : "Billets sur"} ${e.vendor || "la billetterie"}`;
+  const timeLabel = (e) => (e.time ? e.time.replace(":", "h") : "Horaire à venir");
+  const catOf = (e) => (CATS[e.category] ? e.category : "autre");
+  const kindLabel = (e) => genreFr(e.genre) || CATS[catOf(e)].one;
+  // Ticketmaster met une photo générique de catégorie (chemin /dam/c/) quand l'organisateur n'a pas fourni
+  // de visuel : on ne l'affiche pas, ce n'est pas l'image de l'événement.
+  const realImage = (e) => { const u = safeUrl(e.image); return /ticketm\.net\/dam\/c\//.test(u) ? "" : u; };
+  const isCrest = (e, img) => ["football", "rugby", "basket", "hockey"].includes(catOf(e)) && /crest|badge|logo|\.svg|\.png$/i.test(img);
+
+  function media(e) {
+    const img = realImage(e);
+    const label = esc(kindLabel(e));
+    if (!img) return `<div class="media placeholder" style="--c:var(--c-${catOf(e)})" data-label="${label}"></div>`;
+    return `<div class="media ${isCrest(e, img) ? "crest" : ""}" style="--c:var(--c-${catOf(e)})" data-label="${label}"><img src="${esc(img)}" alt="" loading="lazy" onerror="this.parentNode.className='media placeholder';this.remove()"></div>`;
   }
 
   function mapsUrl(e) {
@@ -232,35 +252,78 @@
     return "https://www.google.com/maps/search/?api=1&query=" + encodeURIComponent(q);
   }
 
+  // Carte d'agenda : tout le rectangle ouvre la fiche, le lien de billetterie reste cliquable à part.
   function card(e) {
-    const c = CATS[e.category] ? e.category : "autre";
-    const img = safeUrl(e.image);
-    const sport = ["football", "rugby", "basket", "hockey"].includes(c);
-    const media = img
-      ? `<div class="media ${sport && /crest|badge|logo|\.svg|\.png$/i.test(img) ? "crest" : ""}" style="--c:var(--c-${c})"><img src="${esc(img)}" alt="" loading="lazy" onerror="this.parentNode.classList.add('placeholder');this.parentNode.classList.remove('crest');this.outerHTML='${CATS[c].emoji}'"></div>`
-      : `<div class="media placeholder" style="--c:var(--c-${c})">${CATS[c].emoji}</div>`;
+    const c = catOf(e);
     const tUrl = safeUrl(e.ticketUrl);
-    const vendor = e.vendor || "la billetterie";
-    const alts = (e.altTickets || []).filter((a) => safeUrl(a.url));
     return `<article class="card">
-      <div class="mwrap">${media}</div>
+      <div class="mwrap">${media(e)}</div>
       <div class="body">
-        <div class="meta-top"><span class="time">${e.time ? esc(e.time.replace(":", "h")) : "Horaire à venir"}</span>
-          <span class="badge cat" style="--c:var(--c-${c})">${esc(genreFr(e.genre) || CATS[c].one)}</span>
-          ${e.competition ? `<span class="tag">${esc(e.competition)}</span>` : ""}</div>
-        ${isNew(e) || e.status ? `<div class="tags">${isNew(e) ? `<span class="badge new">Nouveau</span>` : ""}${e.status ? `<span class="badge warn">${esc(e.status)}</span>` : ""}</div>` : ""}
-        <h3 class="title">${esc(e.title)}</h3>
-        <div class="place">${PIN}<span><b>${esc(e.venue)}</b>${e.city ? ` · ${esc(e.city)}` : ""}</span></div>
-        ${price(e) ? `<div class="price">${price(e)}</div>` : ""}
+        <div class="meta-top"><span class="time">${esc(timeLabel(e))}</span>
+          <span class="kind" style="--c:var(--c-${c})"><i></i>${esc(kindLabel(e))}</span>
+          ${e.competition ? `<span class="tag">${esc(e.competition)}</span>` : ""}
+          ${isNew(e) ? `<span class="flag new">Nouveau</span>` : ""}${e.status ? `<span class="flag warn">${esc(e.status)}</span>` : ""}</div>
+        <h3 class="title"><button type="button" class="open" data-open="${esc(e.id)}">${esc(e.title)}</button></h3>
+        <div class="place">${PIN}<span><b>${esc(e.venue)}</b>${e.city ? `, ${esc(e.city)}` : ""}</span></div>
         <div class="actions">
-          ${tUrl ? `<a class="btn primary" href="${esc(tUrl)}" target="_blank" rel="noopener">${TICKET} ${INFO_SOURCES.has(e.source) ? "Voir sur" : "Billets sur"} ${esc(vendor)}</a>` : ""}
-          <a class="btn icon" href="${esc(mapsUrl(e))}" target="_blank" rel="noopener" title="Itinéraire" aria-label="Itinéraire vers ${esc(e.venue)}">${MAP}</a>
-          <button class="btn icon" data-ics="${esc(e.id)}" title="Ajouter à mon agenda" aria-label="Ajouter à mon agenda">${CAL}</button>
+          ${tUrl ? `<a class="btn primary" href="${esc(tUrl)}" target="_blank" rel="noopener">${esc(ticketLabel(e))}</a>` : ""}
+          ${price(e) ? `<span class="price">${price(e)}</span>` : ""}
         </div>
-        ${alts.length ? `<div class="alt">Aussi sur ${alts.map((a) => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.vendor)}</a>`).join(", ")}</div>` : ""}
-        ${e.source !== "Instagram" && seenOn(e).length ? `<div class="alt">Annoncé sur Instagram par ${seenOn(e).map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">@${esc(s.account)}</a>`).join(", ")}</div>` : ""}
       </div>
     </article>`;
+  }
+
+  // ------------------------------------------------------------ fiche détaillée
+  const cap = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+  function detail(e) {
+    const c = catOf(e);
+    const img = realImage(e);
+    const tUrl = safeUrl(e.ticketUrl);
+    const alts = (e.altTickets || []).filter((a) => safeUrl(a.url));
+    const p = price(e);
+    const hero = img
+      ? `<div class="sheet-media ${isCrest(e, img) ? "crest" : ""}" style="--c:var(--c-${c})"><img class="bg" src="${esc(img)}" alt="" aria-hidden="true"><img class="fg" src="${esc(img)}" alt=""></div>`
+      : `<div class="sheet-media placeholder" style="--c:var(--c-${c})"><span>${esc(kindLabel(e))}</span></div>`;
+    const where = e.address && e.city && fold(e.address).includes(fold(e.city)) ? e.address : [e.address, e.city].filter(Boolean).join(", ");
+    return `${hero}
+      <button type="button" class="sheet-close" data-close aria-label="Fermer la fiche"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.4 5 12 10.6 17.6 5 19 6.4 13.4 12l5.6 5.6-1.4 1.4-5.6-5.6L6.4 19 5 17.6l5.6-5.6L5 6.4 6.4 5Z"/></svg></button>
+      <div class="sheet-body">
+        <div class="sheet-main">
+          <div class="meta-top"><span class="kind" style="--c:var(--c-${c})"><i></i>${esc(kindLabel(e))}</span>
+            ${e.competition ? `<span class="tag">${esc(e.competition)}</span>` : ""}
+            ${isNew(e) ? `<span class="flag new">Nouveau</span>` : ""}${e.status ? `<span class="flag warn">${esc(e.status)}</span>` : ""}</div>
+          <h2 id="detailTitle">${esc(e.title)}</h2>
+          <dl class="facts">
+            <div><dt>Date</dt><dd>${esc(cap(fmtDay(e.date)))}${e.time ? `, ${esc(timeLabel(e))}` : ", horaire pas encore annoncé"}</dd></div>
+            <div><dt>Lieu</dt><dd><b>${esc(e.venue)}</b>${where ? `<br>${esc(where)}` : ""}</dd></div>
+          </dl>
+          ${e.description && !/\d{4}-\d\d-\d\dT\d\d:/.test(e.description) ? `<p class="desc">${esc(e.description)}${e.description.length >= 400 ? "…" : ""}</p>` : ""}
+          ${e.source !== "Instagram" && seenOn(e).length ? `<p class="alt">Annoncé sur Instagram par ${seenOn(e).map((s) => `<a href="${esc(s.url)}" target="_blank" rel="noopener">@${esc(s.account)}</a>`).join(", ")}</p>` : ""}
+        </div>
+        <aside class="tickets" aria-label="Billets">
+          <p class="tickets-price">${p || "Prix non communiqué"}</p>
+          <p class="tickets-note">${e.priceNote && !/^(de |à partir de )?[\d.,\s€à]+$/i.test(e.priceNote) ? esc(e.priceNote) : p ? `Tarifs relevés sur ${esc(e.source)}, à vérifier au moment d'acheter.`
+            : INFO_SOURCES.has(e.source) ? `${esc(e.source)} ne donne pas les tarifs : ils sont sur la page de l'organisateur.`
+            : `${esc(e.vendor || "La billetterie")} affiche les tarifs sur sa page de vente.`}</p>
+          ${tUrl ? `<a class="btn primary wide" href="${esc(tUrl)}" target="_blank" rel="noopener">${esc(ticketLabel(e))}</a>` : ""}
+          ${alts.length ? `<p class="alt">Aussi en vente sur ${alts.map((a) => `<a href="${esc(a.url)}" target="_blank" rel="noopener">${esc(a.vendor)}</a>`).join(", ")}</p>` : ""}
+          <div class="tickets-links">
+            <a class="btn" href="${esc(mapsUrl(e))}" target="_blank" rel="noopener">${MAP} Itinéraire</a>
+            <button type="button" class="btn" data-ics="${esc(e.id)}">${CAL} Ajouter à mon agenda</button>
+            <button type="button" class="btn" data-copy>${LINK} <span>Copier le lien</span></button>
+          </div>
+        </aside>
+      </div>`;
+  }
+  function openDetail(id) {
+    const e = DATA.events.find((x) => x.id === id);
+    const dlg = $("#detail");
+    if (!e || !dlg) { state.open = ""; writeHash(); return; } // date passée ou lien périmé
+    dlg.innerHTML = detail(e);
+    dlg.scrollTop = 0;
+    if (!dlg.open) dlg.showModal();
+    state.open = id;
+    writeHash();
   }
 
   function renderAgenda() {
@@ -326,11 +389,8 @@
   };
 
   function mapPopup(g) {
-    const rows = g.evs.slice(0, 6).map((e) => {
-      const t = safeUrl(e.ticketUrl);
-      const name = t ? `<a href="${esc(t)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title);
-      return `<li style="--c:var(--c-${pinCat(e.category)})"><span class="when">${esc(when(e))}</span>${name}</li>`;
-    }).join("");
+    const rows = g.evs.slice(0, 6).map((e) =>
+      `<li style="--c:var(--c-${pinCat(e.category)})"><span class="when">${esc(when(e))}</span><button type="button" class="pop-ev" data-open="${esc(e.id)}">${esc(e.title)}</button></li>`).join("");
     const rest = g.evs.length - 6;
     return `<div class="map-pop">
       <h3>${esc(g.venue)}</h3><p class="muted">${esc(g.address || g.city)}</p>
@@ -529,9 +589,19 @@
     else if (b.dataset.view) { state.view = b.dataset.view; render(); }
     else if (b.dataset.venue) { state.venue = b.dataset.venue; state.view = "agenda"; state.limit = PAGE; render(); window.scrollTo({ top: 0, behavior: "smooth" }); }
     else if (b.dataset.ics) { const e = DATA.events.find((x) => x.id === b.dataset.ics); if (e) ics(e); }
+    else if (b.dataset.open) openDetail(b.dataset.open);
+    else if (b.dataset.close !== undefined) $("#detail").close();
+    else if (b.dataset.copy !== undefined) {
+      const t = b.querySelector("span");
+      navigator.clipboard?.writeText(location.href).then(() => { t.textContent = "Lien copié"; setTimeout(() => { t.textContent = "Copier le lien"; }, 2000); });
+    }
     else if (b.id === "more") { state.limit += PAGE; render(); }
     else if (b.id === "reset") { Object.assign(state, { q: "", cat: "", date: "all", pick: "", venue: "", onlyNew: false, limit: PAGE }); render(); }
   });
+
+  // La fiche se ferme avec Échap, la croix, ou un clic à côté.
+  $("#detail").addEventListener("close", (ev) => { if (!ev.currentTarget.open) { state.open = ""; writeHash(); } });
+  $("#detail").addEventListener("click", (ev) => { if (ev.target === ev.currentTarget) ev.currentTarget.close(); });
 
   // ------------------------------------------------------------ load
   readHash();
@@ -545,6 +615,7 @@
       $("#sources").innerHTML = Object.entries(DATA.sources).map(([n, s]) =>
         `<li class="${s.ok ? "ok" : "ko"}">${esc(n)} : ${s.ok ? `${s.count} événement${s.count > 1 ? "s" : ""}` : "non utilisée"}</li>`).join("");
       render();
+      if (state.open) openDetail(state.open); // lien partagé vers une fiche
     })
     .catch(() => { $("#updated").textContent = ""; render(); });
 })();

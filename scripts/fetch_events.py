@@ -147,7 +147,7 @@ def parse_dt(value: str | None, assume_tz=PARIS) -> dt.datetime | None:
 def make_event(*, title, start, source, category="autre", venue_name="", venue_id=None,
                city="", address="", lat=None, lng=None, ticket_url="", vendor="",
                image="", price_min=None, price_max=None, currency="EUR", genre="",
-               status="", has_time=True, competition="", end=None, description=""):
+               status="", has_time=True, competition="", end=None, description="", price_note=""):
     if not title or not start:
         return None
     if start < NOW - dt.timedelta(hours=6) or start > HORIZON:
@@ -174,6 +174,7 @@ def make_event(*, title, start, source, category="autre", venue_name="", venue_i
         "image": image,
         "priceMin": price_min,
         "priceMax": price_max,
+        "priceNote": re.sub(r"\s+", " ", price_note or "").strip()[:160],
         "currency": currency,
         "status": status,
         "description": (description or "")[:400],
@@ -262,6 +263,30 @@ def tm_category(cls: dict) -> tuple[str, str]:
     return cat, genre
 
 
+def tm_image(*image_lists) -> str:
+    """Vraie affiche de l'événement, sinon photo de l'artiste.
+
+    Ticketmaster remplit les fiches sans visuel avec une photo générique de la catégorie
+    (« fallback », chemin /dam/c/) : la même image servait pour des centaines de dates.
+    On ne la garde jamais ; le site affiche alors son propre visuel.
+    """
+    for imgs in image_lists:
+        real = [i for i in imgs or [] if i.get("url") and not i.get("fallback") and "/dam/c/" not in i["url"]]
+        if real:
+            real.sort(key=lambda i: (i.get("ratio") != "16_9", -(i.get("width") or 0)))
+            return next((i["url"] for i in real if (i.get("width") or 0) <= 1200), real[0]["url"])
+    return ""
+
+
+def tm_prices(ranges) -> tuple[float | None, float | None, str]:
+    """Fourchette de prix sur tous les tarifs annoncés (standard, VIP…)."""
+    vals = [(r.get("min"), r.get("max"), r.get("currency")) for r in ranges or [] if isinstance(r, dict)]
+    lows = [v[0] for v in vals if isinstance(v[0], (int, float))]
+    highs = [v[1] for v in vals if isinstance(v[1], (int, float))]
+    cur = next((v[2] for v in vals if v[2]), "EUR")
+    return (min(lows) if lows else None), (max(highs) if highs else None), cur
+
+
 def fetch_ticketmaster():
     key = os.environ.get("TICKETMASTER_API_KEY")
     if not key:
@@ -288,9 +313,9 @@ def fetch_ticketmaster():
                     parse_dt(d.get("localDate") + ("T" + d["localTime"] if d.get("localTime") else ""))
                 ven = ((e.get("_embedded") or {}).get("venues") or [{}])[0]
                 cat, genre = tm_category((e.get("classifications") or [{}])[0])
-                imgs = sorted(e.get("images") or [], key=lambda i: (i.get("ratio") != "16_9", -(i.get("width") or 0)))
-                img = next((i["url"] for i in imgs if (i.get("width") or 0) <= 1100), imgs[0]["url"] if imgs else "")
-                pr = (e.get("priceRanges") or [{}])[0]
+                artists = (e.get("_embedded") or {}).get("attractions") or []
+                img = tm_image(e.get("images"), *[a.get("images") for a in artists])
+                pmin, pmax, cur = tm_prices(e.get("priceRanges"))
                 loc = ven.get("location") or {}
                 ev = make_event(
                     title=e.get("name"), start=st, source="Ticketmaster", category=cat, genre=genre,
@@ -299,7 +324,7 @@ def fetch_ticketmaster():
                     lat=float(loc["latitude"]) if loc.get("latitude") else None,
                     lng=float(loc["longitude"]) if loc.get("longitude") else None,
                     ticket_url=e.get("url", ""), vendor="Ticketmaster", image=img,
-                    price_min=pr.get("min"), price_max=pr.get("max"), currency=pr.get("currency", "EUR"),
+                    price_min=pmin, price_max=pmax, currency=cur,
                     status={"cancelled": "Annulé", "postponed": "Reporté", "rescheduled": "Reprogrammé",
                             "offsale": "Plus en vente"}.get(e.get("dates", {}).get("status", {}).get("code", ""), ""),
                     has_time=not d.get("timeTBA") and not d.get("noSpecificTime") and bool(d.get("localTime") or d.get("dateTime")),
@@ -499,11 +524,12 @@ def fetch_jsonld():
                 name = e.get("name") or ""
                 if loc.get("name") and name.lower().endswith(" @ " + loc["name"].lower()):
                     name = name[: -len(loc["name"]) - 3]  # Songkick : « Artiste @ Salle »
-                price = off.get("price") or off.get("lowPrice")
-                try:
-                    price = float(str(price).replace(",", ".")) if price not in (None, "") else None
-                except ValueError:
-                    price = None
+                def num(v):
+                    try:
+                        return float(str(v).replace(",", ".")) if v not in (None, "") else None
+                    except ValueError:
+                        return None
+                price, price_hi = num(off.get("price") or off.get("lowPrice")), num(off.get("highPrice"))
                 ev = make_event(
                     title=name, start=parse_dt(sd), end=parse_dt(e.get("endDate")),
                     source=page.get("source") or urllib.parse.urlparse(url).netloc.replace("www.", ""),
@@ -513,7 +539,8 @@ def fetch_jsonld():
                     city=addr.get("addressLocality", ""), address=addr.get("streetAddress", ""),
                     ticket_url=urllib.parse.urljoin(url, t_url), vendor=vendor_from_url(urllib.parse.urljoin(url, t_url)),
                     image=urllib.parse.urljoin(url, img) if isinstance(img, str) and img else "",
-                    price_min=price, currency=off.get("priceCurrency") or "EUR",
+                    price_min=price, price_max=price_hi if price_hi and price_hi != price else None,
+                    currency=off.get("priceCurrency") or "EUR",
                     has_time="T" in sd, description=re.sub("<[^>]+>", " ", e.get("description") or ""),
                     status="Annulé" if "Cancelled" in str(e.get("eventStatus", "")) else
                            "Reporté" if "Postponed" in str(e.get("eventStatus", "")) else "",
@@ -589,6 +616,23 @@ def oa_category(text: str) -> tuple[str, str]:
     return "autre", ""
 
 
+RX_EUROS = re.compile(r"(\d+(?:[.,]\d{1,2})?)\s*(?:€|euros?\b)", re.I)
+RX_FREE = re.compile(r"\b(gratuit\w*|entree libre|acces libre|sans reservation, gratuit)\b")
+
+
+def oa_prices(conditions: str) -> tuple[float | None, float | None]:
+    """« De 6 € à 16.5 € », « À partir de 28 € », « Entrée gratuite » -> (min, max)."""
+    amounts = sorted({float(a.replace(",", ".")) for a in RX_EUROS.findall(conditions or "")})
+    if amounts:
+        lo, hi = amounts[0], amounts[-1]
+        if norm(conditions).startswith("a partir de"):
+            return lo, None
+        return lo, (hi if hi != lo else None)
+    if RX_FREE.search(norm(conditions)):
+        return 0.0, None
+    return None, None
+
+
 def fetch_openagenda_public():
     c = CONFIG["center"]
     where = (f"within_distance(location_coordinates, geom'POINT({c['lng']} {c['lat']})', {c['radiusKm']}km)"
@@ -597,7 +641,8 @@ def fetch_openagenda_public():
     while offset < 5000:
         q = {"where": where, "order_by": "firstdate_begin", "limit": per, "offset": offset,
              "select": "uid,title_fr,description_fr,keywords_fr,image,canonicalurl,registration,timings,"
-                       "location_name,location_address,location_city,location_coordinates,status,originagenda_title"}
+                       "location_name,location_address,location_city,location_coordinates,status,originagenda_title,"
+                       "conditions_fr"}
         data = get_json(ODS_URL + "?" + urllib.parse.urlencode(q))
         rows = data.get("results") or []
         for r in rows:
@@ -633,6 +678,8 @@ def fetch_openagenda_public():
             geo = r.get("location_coordinates") or {}
             # Les expositions ont une date par jour d'ouverture : on ne garde que les 3 prochaines.
             upcoming = [t for t in timings if (parse_dt(t.get("begin")) or NOW) >= NOW - dt.timedelta(hours=6)][:3]
+            cond = r.get("conditions_fr") or ""
+            pmin, pmax = oa_prices(cond)
             for t in upcoming:
                 ev = make_event(
                     title=title, start=parse_dt(t.get("begin")), end=parse_dt(t.get("end")),
@@ -641,6 +688,7 @@ def fetch_openagenda_public():
                     address=r.get("location_address") or "", lat=geo.get("lat"), lng=geo.get("lon"),
                     ticket_url=url, vendor=vendor_from_url(url), image=r.get("image") or "",
                     description=r.get("description_fr") or "",
+                    price_min=pmin, price_max=pmax, price_note=cond,
                     status={2: "Reprogrammé", 4: "Reporté", 5: "Complet", 6: "Annulé"}.get(sid, ""),
                 )
                 if ev:
@@ -891,9 +939,11 @@ def dedupe(events):
             key = f"{e['date']}|{e['category']}|{e['venueId']}"
         if key in out:
             keep = out[key]
-            for f in ("image", "priceMin", "priceMax", "genre", "competition", "description"):
+            for f in ("image", "genre", "competition", "description"):
                 if not keep.get(f) and e.get(f):
                     keep[f] = e[f]
+            if keep.get("priceMin") is None and e.get("priceMin") is not None:  # 0 € (gratuit) compte
+                keep["priceMin"], keep["priceMax"], keep["priceNote"] = e["priceMin"], e.get("priceMax"), e.get("priceNote", "")
             if not keep.get("time") and e.get("time"):
                 keep["time"], keep["start"] = e["time"], e["start"]
             if e["ticketUrl"] and e["ticketUrl"] != keep["ticketUrl"] and (e["vendor"] or e["source"]) != keep["vendor"]:
