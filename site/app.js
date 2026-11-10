@@ -311,63 +311,172 @@
   }
 
   // ------------------------------------------------------------ carte
-  let map = null, pins = null;
+  const CENTER = [45.7578, 4.832]; // place Bellecour
+  const NEAR_KM = 14; // cadrage de départ : la métropole, pas les villages à 40 km
+  const LOCATE = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8Zm8.94 3A9 9 0 0 0 13 3.06V1h-2v2.06A9 9 0 0 0 3.06 11H1v2h2.06A9 9 0 0 0 11 20.94V23h2v-2.06A9 9 0 0 0 20.94 13H23v-2h-2.06ZM12 19a7 7 0 1 1 0-14 7 7 0 0 1 0 14Z"/></svg>`;
+  const FIT = `<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 3 2.3 2.3-2.89 2.87 1.42 1.42L18.7 6.7 21 9V3h-6ZM3 9l2.3-2.3 2.87 2.89 1.42-1.42L6.7 5.3 9 3H3v6Zm6 12-2.3-2.3 2.89-2.87-1.42-1.42L5.3 17.3 3 15v6h6Zm12-6-2.3 2.3-2.87-2.89-1.42 1.42 2.89 2.87L15 21h6v-6Z"/></svg>`;
+  let map = null, clusters = null, legend = null, me = null, allBounds = null;
+  const markers = new Map(); // clé du point -> { m: repère Leaflet, g: lieu et ses dates }
   const shortDay = (iso) => new Date(iso + "T12:00:00Z").toLocaleDateString("fr-FR", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const when = (e) => shortDay(e.date) + (e.time ? " à " + e.time.replace(":", "h") : "");
+  const pinCat = (c) => (CATS[c] ? c : "autre");
+  const km = (a, b) => {
+    const r = Math.PI / 180, x = (b[1] - a[1]) * r * Math.cos(((a[0] + b[0]) / 2) * r), y = (b[0] - a[0]) * r;
+    return Math.hypot(x, y) * 6371;
+  };
+
   function mapPopup(g) {
-    const rows = g.evs.slice(0, 5).map((e) => {
+    const rows = g.evs.slice(0, 6).map((e) => {
       const t = safeUrl(e.ticketUrl);
       const name = t ? `<a href="${esc(t)}" target="_blank" rel="noopener">${esc(e.title)}</a>` : esc(e.title);
-      return `<li>${name}<br><span class="muted">${esc(shortDay(e.date))}${e.time ? " · " + esc(e.time.replace(":", "h")) : ""}</span></li>`;
+      return `<li style="--c:var(--c-${pinCat(e.category)})"><span class="when">${esc(when(e))}</span>${name}</li>`;
     }).join("");
-    const rest = g.evs.length - 5;
-    const more = rest > 0 ? `<p class="muted">+ ${rest} autre${rest > 1 ? "s" : ""}</p>` : "";
-    return `<div class="map-pop"><h3>${esc(g.venue)}</h3><p class="muted">${esc(g.address || g.city)}</p><ul>${rows}</ul>${more}<button class="btn primary" data-go>Voir tout dans l'agenda</button></div>`;
+    const rest = g.evs.length - 6;
+    return `<div class="map-pop">
+      <h3>${esc(g.venue)}</h3><p class="muted">${esc(g.address || g.city)}</p>
+      <ul>${rows}</ul>${rest > 0 ? `<p class="muted">et ${rest} autre${rest > 1 ? "s dates" : " date"}</p>` : ""}
+      <div class="pop-actions">
+        <button class="btn primary" data-venue="${esc(g.key)}">Voir l'agenda du lieu</button>
+        <a class="btn icon" href="${esc(mapsUrl(g))}" target="_blank" rel="noopener" title="Itinéraire" aria-label="Itinéraire vers ${esc(g.venue)}">${MAP}</a>
+      </div>
+    </div>`;
   }
+
+  // Repère d'un lieu : couleur de la catégorie la plus présente, taille selon le nombre de dates.
+  function pinIcon(g) {
+    const n = g.evs.length, s = n >= 50 ? 42 : n >= 10 ? 34 : 28;
+    return L.divIcon({ className: "pin-wrap", html: `<span class="pin" style="--c:var(--c-${g.cat})">${n}</span>`, iconSize: [s, s] });
+  }
+  // Groupe de lieux proches : on affiche le total des dates, pas le nombre de lieux.
+  function clusterIcon(cl) {
+    const n = cl.getAllChildMarkers().reduce((t, m) => t + m.options.n, 0);
+    const s = n >= 200 ? 48 : n >= 50 ? 42 : 36;
+    return L.divIcon({ className: "pin-wrap", html: `<span class="cluster">${n}</span>`, iconSize: [s, s] });
+  }
+
+  function initMap() {
+    map = L.map("mapbox").setView(CENTER, 12);
+    // Fond OpenStreetMap, atténué en CSS pour que les repères ressortent (et assombri en thème sombre).
+    L.tileLayer("https://tile.openstreetmap.org/{z}/{x}/{y}.png", {
+      maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
+    }).addTo(map);
+    clusters = L.markerClusterGroup
+      ? L.markerClusterGroup({ maxClusterRadius: 60, showCoverageOnHover: false, disableClusteringAtZoom: 16, iconCreateFunction: clusterIcon })
+      : L.layerGroup(); // si le module de regroupement ne charge pas, la carte marche quand même
+    clusters.addTo(map);
+
+    const tools = L.control({ position: "topleft" });
+    tools.onAdd = () => {
+      const box = L.DomUtil.create("div", "leaflet-bar map-tools");
+      box.innerHTML = `<button type="button" data-tool="me" title="Autour de moi" aria-label="Autour de moi">${LOCATE}</button>` +
+        `<button type="button" data-tool="all" title="Voir tous les lieux" aria-label="Voir tous les lieux">${FIT}</button>`;
+      L.DomEvent.disableClickPropagation(box);
+      L.DomEvent.on(box, "click", (ev) => {
+        const b = ev.target.closest("button");
+        if (b?.dataset.tool === "me") { $("#mapHead").textContent = "Recherche de ta position…"; map.locate({ setView: true, maxZoom: 14 }); }
+        else if (b?.dataset.tool === "all" && allBounds) map.fitBounds(allBounds, { padding: [30, 30] });
+      });
+      return box;
+    };
+    tools.addTo(map);
+    legend = L.control({ position: "bottomleft" });
+    legend.onAdd = () => L.DomUtil.create("div", "map-legend");
+    legend.addTo(map);
+
+    map.on("moveend", renderMapList);
+    map.on("locationfound", (ev) => {
+      me?.remove();
+      me = L.layerGroup([
+        L.circle(ev.latlng, { radius: ev.accuracy, color: "#0a84ff", weight: 1, fillOpacity: 0.1, interactive: false }),
+        L.circleMarker(ev.latlng, { radius: 7, color: "#fff", weight: 3, fillColor: "#0a84ff", fillOpacity: 1, interactive: false }),
+      ]).addTo(map);
+    });
+    map.on("locationerror", () => { $("#mapHead").textContent = "Position introuvable : autorise la localisation dans ton navigateur, puis réessaie."; });
+
+    // Liste à côté de la carte : un clic montre le lieu, le survol le met en avant.
+    const list = $("#mapList");
+    list.addEventListener("click", (ev) => {
+      const x = markers.get(ev.target.closest("[data-pin]")?.dataset.pin);
+      if (!x) return;
+      if (matchMedia("(max-width: 860px)").matches) $("#mapbox").scrollIntoView({ behavior: "smooth", block: "center" });
+      clusters.zoomToShowLayer ? clusters.zoomToShowLayer(x.m, () => x.m.openPopup()) : x.m.openPopup();
+    });
+    const hot = (ev, on) => markers.get(ev.target.closest("[data-pin]")?.dataset.pin)?.m.getElement()?.classList.toggle("hot", on);
+    list.addEventListener("mouseover", (ev) => hot(ev, true));
+    list.addEventListener("mouseout", (ev) => hot(ev, false));
+  }
+
   function renderMap() {
     if (typeof L === "undefined") {
       $("#count").textContent = "La carte se charge depuis internet : vérifie ta connexion puis recharge la page.";
       return;
     }
-    if (!map) {
-      map = L.map("mapbox").setView([45.7578, 4.832], 12);
-      L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", {
-        maxZoom: 19, attribution: '&copy; <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener">OpenStreetMap</a>',
-      }).addTo(map);
-      pins = L.layerGroup().addTo(map);
-    }
+    if (!map) initMap();
     // Un repère par lieu : les événements à venir (mêmes filtres que l'agenda) sont regroupés par coordonnées.
     const groups = new Map();
+    let missing = 0;
     for (const e of DATA.events) {
-      if (e.lat == null || e.lng == null || !baseFilter(e)) continue;
+      if (!baseFilter(e)) continue;
+      if (e.lat == null || e.lng == null) { missing++; continue; }
       const k = e.lat.toFixed(4) + "," + e.lng.toFixed(4);
-      if (!groups.has(k)) groups.set(k, { lat: e.lat, lng: e.lng, venue: e.venue, address: e.address || "", city: e.city || "", key: e.venueId || e.venue, evs: [] });
+      if (!groups.has(k)) groups.set(k, { k, lat: e.lat, lng: e.lng, address: e.address || "", city: e.city || "", evs: [] });
       groups.get(k).evs.push(e);
     }
-    pins.clearLayers();
+    clusters.clearLayers();
+    markers.clear();
     let total = 0;
-    const points = [];
+    const pts = [], near = [], cats = new Set();
     for (const g of groups.values()) {
       g.evs.sort((a, b) => (a.start || "").localeCompare(b.start || ""));
       total += g.evs.length;
-      points.push([g.lat, g.lng]);
-      const m = L.marker([g.lat, g.lng], {
-        icon: L.divIcon({ className: "", html: `<span class="pin">${g.evs.length}</span>`, iconSize: null }),
-        title: g.venue,
-      });
-      m.bindPopup(mapPopup(g), { maxWidth: 300 });
-      m.on("popupopen", (ev) => {
-        ev.popup.getElement().querySelector("[data-go]")?.addEventListener("click", () => {
-          state.venue = g.key; state.view = "agenda"; state.limit = PAGE; render();
-          window.scrollTo({ top: 0, behavior: "smooth" });
-        }, { once: true });
-      });
-      pins.addLayer(m);
+      // Nom et catégorie du lieu : la salle connue en priorité, sinon l'orthographe la plus fréquente.
+      const tally = (f) => { const t = {}; for (const e of g.evs) { const v = f(e); if (v) t[v] = (t[v] || 0) + 1; } return Object.keys(t).sort((a, b) => t[b] - t[a])[0]; };
+      g.key = tally((e) => venueById[e.venueId] && e.venueId) || tally((e) => e.venueId || e.venue);
+      g.venue = venueById[g.key]?.name || tally((e) => e.venue) || "Lieu à confirmer";
+      g.cat = tally((e) => pinCat(e.category));
+      cats.add(g.cat);
+      const ll = [g.lat, g.lng];
+      pts.push(ll);
+      if (km(CENTER, ll) <= NEAR_KM) near.push(ll);
+      const m = L.marker(ll, { icon: pinIcon(g), title: g.venue, n: g.evs.length, riseOnHover: true });
+      m.bindPopup(() => mapPopup(g), { maxWidth: 320, minWidth: 260, autoPanPadding: [20, 20] });
+      markers.set(g.k, { m, g });
     }
+    const layers = [...markers.values()].map((x) => x.m);
+    clusters.addLayers ? clusters.addLayers(layers) : layers.forEach((m) => clusters.addLayer(m));
+
     $("#count").textContent = groups.size
-      ? `${total} événement${total > 1 ? "s" : ""} dans ${groups.size} lieu${groups.size > 1 ? "x" : ""}`
+      ? `${total} événement${total > 1 ? "s" : ""} dans ${groups.size} lieu${groups.size > 1 ? "x" : ""}` +
+        (missing ? ` (${missing} sans adresse précise, visible${missing > 1 ? "s" : ""} seulement dans l'agenda)` : "")
       : "Aucun événement à placer sur la carte avec ces filtres";
+    legend.getContainer().innerHTML = Object.keys(CATS).filter((c) => cats.has(c))
+      .map((c) => `<span style="--c:var(--c-${c})"><i></i>${CATS[c].label}</span>`).join("");
+    legend.getContainer().hidden = !cats.size;
+
     map.invalidateSize();
-    if (points.length) map.fitBounds(points, { padding: [40, 40], maxZoom: 14 });
+    allBounds = pts.length ? L.latLngBounds(pts) : null;
+    const frame = near.length ? near : pts;
+    if (frame.length) map.fitBounds(frame, { padding: [30, 30], maxZoom: 15 });
+    renderMapList();
+  }
+
+  // Les lieux visibles dans le cadre de la carte, du plus chargé au moins chargé.
+  function renderMapList() {
+    if (!map || state.view !== "map") return;
+    const box = map.getBounds();
+    const shown = [...markers.values()].map((x) => x.g).filter((g) => box.contains([g.lat, g.lng]))
+      .sort((a, b) => b.evs.length - a.evs.length);
+    const dates = shown.reduce((t, g) => t + g.evs.length, 0);
+    $("#mapHead").textContent = !markers.size ? ""
+      : shown.length ? `${shown.length} lieu${shown.length > 1 ? "x" : ""} dans cette zone, ${dates} date${dates > 1 ? "s" : ""}`
+      : "Aucun lieu dans cette zone : dézoome ou déplace la carte.";
+    const MAX = 40;
+    $("#mapList").innerHTML = shown.slice(0, MAX).map((g) => `<li><button type="button" class="map-item" data-pin="${esc(g.k)}" style="--c:var(--c-${g.cat})">
+        <span class="n">${g.evs.length}</span>
+        <span class="txt"><b>${esc(g.venue)}</b>${g.city ? `<span class="sub">${esc(g.city)}</span>` : ""}
+          <span class="next">${esc(g.evs[0].title)}, ${esc(when(g.evs[0]))}</span></span>
+      </button></li>`).join("") +
+      (shown.length > MAX ? `<li class="map-more">Et ${shown.length - MAX} autres lieux : zoome pour les voir.</li>` : "");
   }
 
   function render() {

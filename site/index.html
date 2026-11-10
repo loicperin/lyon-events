@@ -11,6 +11,7 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" integrity="sha384-c6Rcwz4e4CITMbu/NBmnNS8yN2sC3cUElMEMfP3vqqKFp7GOYaaBBCqmaWBjmkjb" crossorigin="">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/MarkerCluster.css" integrity="sha384-pmjIAcz2bAn0xukfxADbZIb3t8oRT9Sv0rvO+BR5Csr6Dhqq+nZs59P0pPKQJkEV" crossorigin="">
   <link rel="stylesheet" href="style.css">
 </head>
 <body>
@@ -55,7 +56,15 @@
     <p class="result-count" id="count"></p>
     <section id="agenda"></section>
     <section id="venues" hidden></section>
-    <section id="map" hidden><div id="mapbox" role="region" aria-label="Carte des événements"></div></section>
+    <section id="map" hidden>
+      <div class="map-layout">
+        <div id="mapbox" role="region" aria-label="Carte des événements"></div>
+        <aside class="map-side" aria-label="Lieux visibles sur la carte">
+          <p class="map-side-head" id="mapHead"></p>
+          <ol class="map-list" id="mapList"></ol>
+        </aside>
+      </div>
+    </section>
   </main>
 
   <footer class="wrap footer">
@@ -78,6 +87,7 @@
   </footer>
 
   <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js" integrity="sha384-NElt3Op+9NBMCYaef5HxeJmU4Xeard/Lku8ek6hoPTvYkQPh3zLIrJP7KiRocsxO" crossorigin=""></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet.markercluster/1.5.3/leaflet.markercluster.js" integrity="sha384-eXVCORTRlv4FUUgS/xmOyr66XBVraen8ATNLMESp92FKXLAMiKkerixTiBvXriZr" crossorigin=""></script>
   <script src="app.js"></script>
 </body>
 </html>
